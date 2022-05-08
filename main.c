@@ -1,11 +1,8 @@
-#include <stdio.h>
+#include <windows.h>
 #include "users.h"
 
-int checklogin(){
-    return 0;
-}
-
 int main() {
-    loginFrom();
+    SetConsoleOutputCP(CP_UTF8);
+    menuUsers();
     return 0;
 }

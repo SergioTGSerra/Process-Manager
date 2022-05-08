@@ -1,12 +1,10 @@
-//
-// Created by Tiago on 5/6/2022.
-//
-
 #ifndef TP_PROG1_USERS_H
 #define TP_PROG1_USERS_H
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
 
 typedef struct user{
     int id;
@@ -15,6 +13,11 @@ typedef struct user{
     char pass[50];
 }USER;
 
-void loginFrom();
+typedef struct Elem_user{
+    USER info;
+    struct Elem_user *next;
+}ELEM_USER;
+
+void menuUsers();
 
 #endif //TP_PROG1_USERS_H
