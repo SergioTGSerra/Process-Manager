@@ -19,5 +19,6 @@ typedef struct Elem_user{
 }ELEM_USER;
 
 void menuUsers();
+int login();
 
 #endif //TP_PROG1_USERS_H

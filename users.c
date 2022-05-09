@@ -76,7 +76,7 @@ void listUsers(ELEM_USER *iniList){
     system("cls");
 }
 
-int getSize(ELEM_USER *iniList){
+int getSizeU(ELEM_USER *iniList){
     int size=0;
     ELEM_USER *aux = NULL;
     for(aux = iniList; aux != NULL; aux= aux->next){
@@ -85,20 +85,28 @@ int getSize(ELEM_USER *iniList){
     return size;
 }
 
-/*int verifyLogin(){
+int verifyLogin(ELEM_USER *iniList){
+    ELEM_USER *users = NULL;
+    for(users = iniList; users != NULL; users=users->next){
+        printf("%s", users->info.user);
+    }
+    return 1;
+}
 
-}*/
-
-/*int login(){
+int login(ELEM_USER *iniList){
     char name[100], pass[100];
-    int result = 0;
-    printf("Insira o nome de utilizador: ");
-    gets(name);
-    printf("Insira a password: ");
-    gets(pass);
-    result = verifyLogin(name, pass);
+    int result, flag = 0;
+    do{
+        if(flag) printf("Dados incorretos\n");
+        printf("Insira o nome de utilizador: ");
+        gets(name);
+        printf("Insira a password: ");
+        gets(pass);
+        result = verifyLogin(&iniList);
+        if(result == 0) flag = 1;
+    }while(flag);
     return result; // 1 - success | 0 - failure
-}*/
+}
 
 int printMenu(){
     int op;
@@ -117,7 +125,7 @@ void menuUsers(){
     ELEM_USER *iniListU=NULL;
     USER newUser;
     readUsers(&iniListU);
-    n_users = getSize(iniListU);
+    n_users = getSizeU(iniListU);
     do{
         op = printMenu();
         switch (op) {
