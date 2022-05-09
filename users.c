@@ -85,27 +85,36 @@ int getSizeU(ELEM_USER *iniList){
     return size;
 }
 
-int verifyLogin(ELEM_USER *iniList){
+int verifyLogin(ELEM_USER *iniList, char name[100], char pass[100]){
     ELEM_USER *users = NULL;
     for(users = iniList; users != NULL; users=users->next){
-        printf("%s", users->info.user);
+        if((strcmp(users->info.user, name) == 0) && (strcmp(users->info.pass, pass)) == 0) return 1;
     }
-    return 1;
+    return 0;
 }
 
-int login(ELEM_USER *iniList){
+void login(ELEM_USER *iniList){
     char name[100], pass[100];
     int result, flag = 0;
     do{
-        if(flag) printf("Dados incorretos\n");
+        if(flag){
+            system("cls");
+            printf("Dados incorretos\n");
+            system("pause");
+            system("cls");
+        }
         printf("Insira o nome de utilizador: ");
         gets(name);
         printf("Insira a password: ");
         gets(pass);
-        result = verifyLogin(&iniList);
+        result = verifyLogin(iniList, name, pass);
         if(result == 0) flag = 1;
+        else flag = 0;
     }while(flag);
-    return result; // 1 - success | 0 - failure
+    system("cls");
+    printf("Login com sucesso\n");
+    system("pause");
+    system("cls");
 }
 
 int printMenu(){
@@ -120,24 +129,22 @@ int printMenu(){
     return op;
 }
 
-void menuUsers(){
+void menuUsers(ELEM_USER **iniListU){
     int op, n_users;
-    ELEM_USER *iniListU=NULL;
     USER newUser;
-    readUsers(&iniListU);
-    n_users = getSizeU(iniListU);
+    n_users = getSizeU(*iniListU);
     do{
         op = printMenu();
         switch (op) {
             case 1:
                 newUser = insertUser(&n_users);
-                insertEndList(&iniListU, newUser);
+                insertEndList(iniListU, newUser);
                 break;
             case 2:
-                listUsers(iniListU);
+                listUsers(*iniListU);
                 break;
             case 0:
-                saveUsers(iniListU);
+                saveUsers(*iniListU);
                 break;
             default:
                 printf("Erro ao escolher opção");

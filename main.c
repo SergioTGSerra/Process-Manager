@@ -3,9 +3,12 @@
 
 int main() {
     SetConsoleOutputCP(CP_UTF8);
-    login();
 
-    menuUsers();
+    ELEM_USER *iniListU=NULL;
+    readUsers(&iniListU);
+
+    login(iniListU);
+    menuUsers(&iniListU);
 
     return 0;
 }
