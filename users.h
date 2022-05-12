@@ -19,7 +19,7 @@ typedef struct Elem_user{
 }ELEM_USER;
 
 void menuUsers(ELEM_USER **iniListU);
-void login(ELEM_USER *iniList);
+int login(ELEM_USER **iniList, int *uid);
 int readUsers(ELEM_USER **iniListU);
 
 #endif //TP_PROG1_USERS_H

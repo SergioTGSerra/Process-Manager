@@ -50,7 +50,6 @@ int saveUsers(ELEM_USER *iniList){
     fp=fopen("users.dat", "wb");
     if(fp==NULL) return -1;
     for(aux = iniList; aux != NULL; aux=aux->next) fwrite(aux, sizeof(USER), 1, fp);
-    system("pause");
     fclose(fp);
     return 0;
 }
@@ -85,17 +84,36 @@ int getSizeU(ELEM_USER *iniList){
     return size;
 }
 
-int verifyLogin(ELEM_USER *iniList, char name[100], char pass[100]){
+int verifyLogin(ELEM_USER *iniList, char name[100], char pass[100], int *uid){
     ELEM_USER *users = NULL;
     for(users = iniList; users != NULL; users=users->next){
-        if((strcmp(users->info.user, name) == 0) && (strcmp(users->info.pass, pass)) == 0) return 1;
+        if((strcmp(users->info.user, name) == 0) && (strcmp(users->info.pass, pass)) == 0 && users->info.type == 1){
+            *uid = users->info.id;
+            return 1;
+        }
+        if((strcmp(users->info.user, name) == 0) && (strcmp(users->info.pass, pass)) == 0 && users->info.type == 0){
+            *uid = users->info.id;
+            return 0;
+        }
     }
-    return 0;
+    return -1;
 }
 
-void login(ELEM_USER *iniList){
+int login(ELEM_USER **iniListU, int *uid){
     char name[100], pass[100];
     int result, flag = 0;
+    USER newUser;
+    if(getSizeU(*iniListU) == 0){
+        printf("------ Dados Paradão ------\n\n");
+        printf("\t Utilizador: admin\n");
+        printf("\t Password: admin\n\n");
+        printf("\t Nota: Após o primeiro login a password deve ser alterada!\n\n");
+        newUser.id = 1;
+        newUser.type = 1;
+        strcpy(newUser.user, "admin");
+        strcpy(newUser.pass, "admin");
+        insertEndList(iniListU, newUser);
+    }
     do{
         if(flag){
             system("cls");
@@ -103,23 +121,24 @@ void login(ELEM_USER *iniList){
             system("pause");
             system("cls");
         }
-        printf("Insira o nome de utilizador: ");
+        printf("\n\tInsira o nome de utilizador: ");
         gets(name);
-        printf("Insira a password: ");
+        printf("\n\tInsira a password: ");
         gets(pass);
-        result = verifyLogin(iniList, name, pass);
-        if(result == 0) flag = 1;
+        result = verifyLogin(*iniListU, name, pass, uid); // -1 no login | 0 - user | 1 - admin
+        if(result == -1) flag = 1;
         else flag = 0;
     }while(flag);
     system("cls");
-    printf("Login com sucesso\n");
-    system("pause");
-    system("cls");
+    return result;
 }
 
 int printMenu(){
+    system("cls");
     int op;
-    printf("Gerir Utilizadores\n");
+    printf("**********************************\n");
+    printf("*****   Gerir Utilizadores   *****\n");
+    printf("**********************************\n");
     printf("1 - Adicionar Utilizador\n");
     printf("2 - Listar Utilizadores\n");
     printf("0 - Voltar\n");
