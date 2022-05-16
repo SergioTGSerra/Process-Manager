@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <windows.h>
 #include "users.h"
+#include "processes.h"
 
-void menuAdmin(ELEM_USER **iniListU){
+void menuAdmin(ELEM_USER **iniListU, ELEM_PROCESS **iniListP, int *uid){
     int op;
     do {
         system("cls");
@@ -15,7 +16,7 @@ void menuAdmin(ELEM_USER **iniListU){
         printf("> "); scanf("%i", &op);
         switch (op) {
             case 1:
-                //menuProcessos
+                menuProcesses(iniListP, uid);
                 break;
             case 2:
                 menuUsers(iniListU);
@@ -49,14 +50,17 @@ int main() {
     ELEM_USER *iniListU=NULL;
     readUsers(&iniListU);
 
+    //Lists Processes
+    ELEM_PROCESS *iniListP=NULL;
+    readProcesses(&iniListP);
+
     do{
         fflush(stdin);
+        //return login 1 = Admin | 0 = User
         if(login(&iniListU, &uid) == 1){
-            menuAdmin(&iniListU);
+            menuAdmin(&iniListU, &iniListP, &uid);
         }else{
-            //Menu Processos (Para User)
+            menuProcesses(&iniListP, &uid);
         }
     } while (1);
-
-    return 0;
 }

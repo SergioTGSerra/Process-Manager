@@ -26,7 +26,7 @@ USER insertUser(int *n_users){
     return aux;
 }
 
-int insertEndList(ELEM_USER **iniListU, USER newUser){
+int insertEndListU(ELEM_USER **iniListU, USER newUser){
     ELEM_USER *new = NULL, *aux=NULL;
     new = (ELEM_USER *) calloc(1, sizeof(ELEM_USER));
     if(new == NULL){
@@ -58,7 +58,7 @@ int readUsers(ELEM_USER **iniListU){
     USER aux;
     FILE *fp = fopen("users.dat", "rb");
     if(!fp) return -1;
-    while(fread(&aux, sizeof(USER), 1,fp)) insertEndList(iniListU,aux);
+    while(fread(&aux, sizeof(USER), 1,fp)) insertEndListU(iniListU,aux);
     fclose(fp);
     return 0;
 }
@@ -112,7 +112,7 @@ int login(ELEM_USER **iniListU, int *uid){
         newUser.type = 1;
         strcpy(newUser.user, "admin");
         strcpy(newUser.pass, "admin");
-        insertEndList(iniListU, newUser);
+        insertEndListU(iniListU, newUser);
     }
     do{
         if(flag){
@@ -157,13 +157,13 @@ void menuUsers(ELEM_USER **iniListU){
         switch (op) {
             case 1:
                 newUser = insertUser(&n_users);
-                insertEndList(iniListU, newUser);
+                insertEndListU(iniListU, newUser);
+                saveUsers(*iniListU);
                 break;
             case 2:
                 listUsers(*iniListU);
                 break;
             case 0:
-                saveUsers(*iniListU);
                 break;
             default:
                 printf("Erro ao escolher opção");
