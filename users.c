@@ -1,24 +1,21 @@
 #include "users.h"
 
 USER insertUser(int *n_users){
-    char auxs[100];
+    char auxs[10];
     int flag = 0;
     USER aux;
-    (*n_users)++;
-    aux.id = (*n_users);
-    fflush(stdin);
+    aux.id = (*n_users)++;
     printf("Introduza o nome de utilizador: ");
-    gets(aux.user);
+    scanf("%s", &aux.user);
     printf("Administrador (Sim | Não): ");
-    fflush(stdin);
-    gets(auxs);
+    scanf("%s", &auxs);
     if(strcmp(auxs, "Sim") == 0) aux.type = 1; else aux.type = 0;
     do{
         if(flag == 1) printf("Erro ao introduzir password!\n");
         printf("Introduza o palavra-passe: ");
-        gets(auxs);
+        scanf("%s", &auxs);
         printf("Volte a introduzir a palavra-passe: ");
-        gets(aux.pass);
+        scanf("%s", &aux.pass);
         if(strcmp(auxs, aux.pass) != 0) flag = 1;
     }while(strcmp(auxs, aux.pass) != 0);
     system("pause");
@@ -44,12 +41,12 @@ int insertEndListU(ELEM_USER **iniListU, USER newUser){
     return 0;
 }
 
-int saveUsers(ELEM_USER *iniList){
+int saveUsers(ELEM_USER *iniListU){
     ELEM_USER *aux = NULL;
     FILE *fp = NULL;
     fp=fopen("users.dat", "wb");
     if(fp==NULL) return -1;
-    for(aux = iniList; aux != NULL; aux=aux->next) fwrite(aux, sizeof(USER), 1, fp);
+    for(aux = iniListU; aux != NULL; aux=aux->next) fwrite(aux, sizeof(USER), 1, fp);
     fclose(fp);
     return 0;
 }
@@ -63,24 +60,15 @@ int readUsers(ELEM_USER **iniListU){
     return 0;
 }
 
-void listUsers(ELEM_USER *iniList){
-    ELEM_USER *user = NULL;
-    if(iniList==NULL) printf("Erro: Não existem dados de utilizadores!\n");
-    else{
-        for(user = iniList; user != NULL; user=user->next) {
-            printf("Id: %i, Tipo: %i,  Nome: %s, Pass: %s\n", user->info.id, user->info.type, user->info.user, user->info.pass);
-        }
-    }
-    system("pause");
-    system("cls");
+void listUsers(ELEM_USER *iniListU){
+    ELEM_USER *aux;
+    for(aux = iniListU; aux != NULL; aux=aux->next) printf("%s \n", aux->info.user);
 }
 
-int getSizeU(ELEM_USER *iniList){
+int getSizeU(ELEM_USER *iniListU){
     int size=0;
     ELEM_USER *aux = NULL;
-    for(aux = iniList; aux != NULL; aux= aux->next){
-        size++;
-    }
+    for(aux = iniListU; aux != NULL; aux=aux->next) size++;
     return size;
 }
 
@@ -122,9 +110,9 @@ int login(ELEM_USER **iniListU, int *uid){
             system("cls");
         }
         printf("\n\tInsira o nome de utilizador: ");
-        gets(name);
+        scanf("%s", &name);
         printf("\n\tInsira a password: ");
-        gets(pass);
+        scanf("%s", &pass);
         result = verifyLogin(*iniListU, name, pass, uid); // -1 no login | 0 - user | 1 - admin
         if(result == -1) flag = 1;
         else flag = 0;
@@ -133,27 +121,27 @@ int login(ELEM_USER **iniListU, int *uid){
     return result;
 }
 
-int printMenu(){
+int printMenuU(){
     system("cls");
     int op;
     printf("**********************************\n");
     printf("*****   Gerir Utilizadores   *****\n");
     printf("**********************************\n");
-    printf("1 - Adicionar Utilizador\n");
-    printf("2 - Listar Utilizadores\n");
-    printf("0 - Voltar\n");
+    printf("\n\t1 - Adicionar Utilizador\n");
+    printf("\n\t2 - Listar Utilizadores\n");
+    printf("\n\t0 - Voltar\n");
     printf("> ");
-    scanf("%i", &op);
+    scanf("%d", &op);
     system("cls");
     return op;
 }
 
-void menuUsers(ELEM_USER **iniListU){
+void users(ELEM_USER **iniListU){
     int op, n_users;
     USER newUser;
     n_users = getSizeU(*iniListU);
     do{
-        op = printMenu();
+        op = printMenuU();
         switch (op) {
             case 1:
                 newUser = insertUser(&n_users);
@@ -162,6 +150,7 @@ void menuUsers(ELEM_USER **iniListU){
                 break;
             case 2:
                 listUsers(*iniListU);
+                system("pause");
                 break;
             case 0:
                 break;

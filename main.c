@@ -3,7 +3,7 @@
 #include "users.h"
 #include "processes.h"
 
-void menuAdmin(ELEM_USER **iniListU, ELEM_PROCESS **iniListP, int *uid){
+void menuAdmin(ELEM_USER **iniListU, ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, int uid){
     int op;
     do {
         system("cls");
@@ -16,10 +16,10 @@ void menuAdmin(ELEM_USER **iniListU, ELEM_PROCESS **iniListP, int *uid){
         printf("> "); scanf("%i", &op);
         switch (op) {
             case 1:
-                menuProcesses(iniListP, uid);
+                processes(iniListP, endListP, uid);
                 break;
             case 2:
-                menuUsers(iniListU);
+                users(iniListU);
                 break;
             case 0:
                 break;
@@ -31,36 +31,35 @@ void menuAdmin(ELEM_USER **iniListU, ELEM_PROCESS **iniListP, int *uid){
     system("cls");
 }
 
+void hello(){
+    printf("\n"
+           "░█▀█░█▀▄░█▀█░█▀▀░█▀▀░█▀▀░█▀▀░█▀▀░█▀▀░░░█▄█░█▀█░█▀█░█▀█░█▀▀░█▀▀░█▄█░█▀▀░█▀█░▀█▀\n"
+           "░█▀▀░█▀▄░█░█░█░░░█▀▀░▀▀█░▀▀█░█▀▀░▀▀█░░░█░█░█▀█░█░█░█▀█░█░█░█▀▀░█░█░█▀▀░█░█░░█░\n"
+           "░▀░░░▀░▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░░░▀░▀░▀░▀░▀░▀░▀░▀░▀▀▀░▀▀▀░▀░▀░▀▀▀░▀░▀░░▀░\n"
+           "░█▀▄░█░█░░░█▀▀░█▀▀░█▀▄░█▀▀░▀█▀░█▀█░░░█▀▀░█▀▀░█▀▄░█▀▄░█▀█\n"
+           "░█▀▄░░█░░░░▀▀█░█▀▀░█▀▄░█░█░░█░░█░█░░░▀▀█░█▀▀░█▀▄░█▀▄░█▀█\n"
+           "░▀▀░░░▀░░░░▀▀▀░▀▀▀░▀░▀░▀▀▀░▀▀▀░▀▀▀░░░▀▀▀░▀▀▀░▀░▀░▀░▀░▀░▀\n\n");
+    system("pause");
+    system("cls");
+}
 
 int main() {
     SetConsoleOutputCP(CP_UTF8);
+    hello();
 
-    printf("░█▀█░█▀▄░█▀█░█▀▀░█▀▀░█▀▀░█▀▀░█▀▀░█▀▀░░░█▄█░█▀█░█▀█░█▀█░█▀▀░█▀▀░█▄█░█▀▀░█▀█░▀█▀\n"
-           "░█▀▀░█▀▄░█░█░█░░░█▀▀░▀▀█░▀▀█░█▀▀░▀▀█░░░█░█░█▀█░█░█░█▀█░█░█░█▀▀░█░█░█▀▀░█░█░░█░\n"
-           "░▀░░░▀░▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░░░▀░▀░▀░▀░▀░▀░▀░▀░▀▀▀░▀▀▀░▀░▀░▀▀▀░▀░▀░░▀░\n");
-    printf("░█▀▄░█░█░░░█▀▀░█▀▀░█▀▄░█▀▀░▀█▀░█▀█░░░█▀▀░█▀▀░█▀▄░█▀▄░█▀█\n"
-           "░█▀▄░░█░░░░▀▀█░█▀▀░█▀▄░█░█░░█░░█░█░░░▀▀█░█▀▀░█▀▄░█▀▄░█▀█\n"
-           "░▀▀░░░▀░░░░▀▀▀░▀▀▀░▀░▀░▀▀▀░▀▀▀░▀▀▀░░░▀▀▀░▀▀▀░▀░▀░▀░▀░▀░▀\n");
-    system("pause");
-    system("cls");
+    //List Users
+    ELEM_USER *iniListU=NULL; readUsers(&iniListU);
+
+    //List Processes
+    ELEM_PROCESS *iniListP=NULL, *endListP=NULL; readProcesses(&iniListP, &endListP);
 
     int uid; //User ID
-
-    //Lists Users
-    ELEM_USER *iniListU=NULL;
-    readUsers(&iniListU);
-
-    //Lists Processes
-    ELEM_PROCESS *iniListP=NULL;
-    readProcesses(&iniListP);
-
     do{
-        fflush(stdin);
-        //return login 1 = Admin | 0 = User
-        if(login(&iniListU, &uid) == 1){
-            menuAdmin(&iniListU, &iniListP, &uid);
+        int isadmin = login(&iniListU, &uid); // 1 = Admin | 0 = User
+        if(isadmin == 1){
+            menuAdmin(&iniListU, &iniListP, &endListP, uid);
         }else{
-            menuProcesses(&iniListP, &uid);
+            processes(&iniListP, &endListP, uid);
         }
-    } while (1);
+    }while(1);
 }
