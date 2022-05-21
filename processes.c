@@ -1,8 +1,32 @@
-//
-// Created by Tiago on 5/6/2022.
-//
-
 #include "processes.h"
+
+/**
+ * @desc Listagens de processos
+ */
+
+void listProcesses(ELEM_PROCESS *iniListP, int n_processes){
+    ELEM_PROCESS *aux;
+    if(n_processes != 0) for(aux = iniListP; aux != NULL; aux=aux->next) printf("%d - %s \n",aux->info.pid, aux->info.name);
+    else printf("\n\tSem nenhum processo registado no momento!\n\n");
+}
+
+void listProcessesUser(ELEM_PROCESS *iniListP, int uid){
+    ELEM_PROCESS *aux;
+    int flag = 0;
+    for(aux = iniListP; aux != NULL; aux=aux->next) if(aux->info.owner == uid){
+            printf("%d - %s \n",aux->info.pid, aux->info.name);
+            flag = 1;
+    }
+    if (flag == 0) printf("\n\tUtilizador sem processos no momento!\n\n");
+}
+
+void infoProcess(ELEM_PROCESS *iniListP, int pid){
+
+}
+
+/**
+ * @desc List Processes
+ */
 
 int getsizeP(ELEM_PROCESS *iniListP){
     int size = 0;
@@ -16,7 +40,8 @@ PROCESS frontEndProcesses(int *n_processes, int uid){
     time( &rawtime );
     PROCESS aux;
     char auxs[10];
-    aux.pid = (*n_processes)++;
+    (*n_processes)++;
+    aux.pid = *n_processes;
     printf("Intruza o nome do processo: ");
     scanf("%s", &aux.name);
     printf("Intruza a descrição do processo: ");
@@ -70,19 +95,20 @@ int saveProcesses(ELEM_PROCESS *iniListP){
     return 0;
 }
 
-void listProcesses(ELEM_PROCESS *iniListP){
-    ELEM_PROCESS *aux;
-    for(aux = iniListP; aux != NULL; aux=aux->next) printf("%s \n", aux->info.name);
-}
+/**
+ * @desc Main function processes
+ */
 
-int printMenuP(){
+int printMenuP(int isadmin){
     system("cls");
     int op;
     printf("**********************************\n");
     printf("*****     Gerir Processos    *****\n");
     printf("**********************************\n");
-    printf("\n\t1 - Adicionar Processo\n");
-    printf("\n\t2 - Listar Processos\n");
+    printf("\n\t1 - Adicionar processo\n");
+    printf("\n\t2 - Listar meus processos\n");
+    if(isadmin == 1) printf("\n\t3 - Listar todos os processos\n");
+    if(isadmin == 1) printf("\n\t4 - Executar processos\n");
     printf("\n\t0 - Voltar\n");
     printf("> ");
     scanf("%d", &op);
@@ -90,12 +116,12 @@ int printMenuP(){
     return op;
 }
 
-void processes(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, int uid){
+void processes(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, int uid, int isadmin){
     int op, n_processes;
     n_processes = getsizeP(*iniListP);
     PROCESS newProcess;
     do {
-        op = printMenuP();
+        op = printMenuP(isadmin);
         switch (op) {
             case 1:
                 newProcess = frontEndProcesses(&n_processes, uid);
@@ -103,8 +129,14 @@ void processes(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, int uid){
                 saveProcesses(*iniListP);
                 break;
             case 2:
-                listProcesses(*iniListP);
+                listProcessesUser(*iniListP, uid);
                 system("pause");
+                break;
+            case 3:
+                listProcesses(*iniListP, n_processes);
+                system("pause");
+                break;
+            case 4:
                 break;
             case 0:
                 break;

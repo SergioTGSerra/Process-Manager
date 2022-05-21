@@ -3,7 +3,7 @@
 #include "users.h"
 #include "processes.h"
 
-void menuAdmin(ELEM_USER **iniListU, ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, int uid){
+void menuAdmin(ELEM_USER **iniListU, ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, int uid, int isadmin){
     int op;
     do {
         system("cls");
@@ -16,7 +16,7 @@ void menuAdmin(ELEM_USER **iniListU, ELEM_PROCESS **iniListP, ELEM_PROCESS **end
         printf("> "); scanf("%i", &op);
         switch (op) {
             case 1:
-                processes(iniListP, endListP, uid);
+                processes(iniListP, endListP, uid, isadmin);
                 break;
             case 2:
                 users(iniListU);
@@ -25,6 +25,7 @@ void menuAdmin(ELEM_USER **iniListU, ELEM_PROCESS **iniListP, ELEM_PROCESS **end
                 break;
             default:
                 printf("Erro ao escolher opção!\n");
+                system("pause");
                 break;
         }
     } while (op != 0);
@@ -53,13 +54,13 @@ int main() {
     //List Processes
     ELEM_PROCESS *iniListP=NULL, *endListP=NULL; readProcesses(&iniListP, &endListP);
 
-    int uid; //User ID
+    int uid, isadmin; //User ID
     do{
-        int isadmin = login(&iniListU, &uid); // 1 = Admin | 0 = User
+        isadmin = login(&iniListU, &uid); // 1 = Admin | 0 = User
         if(isadmin == 1){
-            menuAdmin(&iniListU, &iniListP, &endListP, uid);
+            menuAdmin(&iniListU, &iniListP, &endListP, uid, isadmin);
         }else{
-            processes(&iniListP, &endListP, uid);
+            processes(&iniListP, &endListP, uid, isadmin);
         }
     }while(1);
 }

@@ -22,7 +22,7 @@ typedef struct Elem_process{
     struct Elem_process *previous;
 }ELEM_PROCESS;
 
-void processes(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, int uid);
+void processes(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, int uid, int isadmin);
 int readProcesses(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP);
 
 #endif //TP_PROG1_PROCESSES_H

@@ -4,7 +4,8 @@ USER insertUser(int *n_users){
     char auxs[10];
     int flag = 0;
     USER aux;
-    aux.id = (*n_users)++;
+    (*n_users)++;
+    aux.id = *n_users;
     printf("Introduza o nome de utilizador: ");
     scanf("%s", &aux.user);
     printf("Administrador (Sim | Não): ");
@@ -156,6 +157,7 @@ void users(ELEM_USER **iniListU){
                 break;
             default:
                 printf("Erro ao escolher opção");
+                system("pause");
                 break;
         }
     }while(op != 0);
