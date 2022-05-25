@@ -4,23 +4,23 @@
  * @desc Listagens de processos
  */
 
-void listProcesses(ELEM_PROCESS *iniListP, int n_processes){
+void listProcesses(ELEM_PROCESS *iniList, int n_processes){
     ELEM_PROCESS *aux;
-    if(n_processes != 0) for(aux = iniListP; aux != NULL; aux=aux->next) printf("%d - %s \n",aux->info.pid, aux->info.name);
+    if(n_processes != 0) for(aux = iniList; aux != NULL; aux=aux->next) printf("%d - %s \n",aux->info.pid, aux->info.name);
     else printf("\n\tSem nenhum processo registado no momento!\n\n");
 }
 
-void listProcessesUser(ELEM_PROCESS *iniListP, int uid){
+void listProcessesUser(ELEM_PROCESS *iniList, int uid){
     ELEM_PROCESS *aux;
     int flag = 0;
-    for(aux = iniListP; aux != NULL; aux=aux->next) if(aux->info.owner == uid){
+    for(aux = iniList; aux != NULL; aux=aux->next) if(aux->info.owner == uid){
             printf("%d - %s \n",aux->info.pid, aux->info.name);
             flag = 1;
     }
     if (flag == 0) printf("\n\tUtilizador sem processos no momento!\n\n");
 }
 
-void infoProcess(ELEM_PROCESS *iniListP, int pid){
+void infoProcess(ELEM_PROCESS *iniList, int pid){
 
 }
 
@@ -28,10 +28,10 @@ void infoProcess(ELEM_PROCESS *iniListP, int pid){
  * @desc List Processes
  */
 
-int getsizeP(ELEM_PROCESS *iniListP){
+int getsizeP(ELEM_PROCESS *iniList){
     int size = 0;
     ELEM_PROCESS *aux = NULL;
-    for (aux = iniListP; aux != NULL; aux=aux->next) size++;
+    for (aux = iniList; aux != NULL; aux=aux->next) size++;
     return size;
 }
 
@@ -61,11 +61,7 @@ PROCESS frontEndProcesses(int *n_processes, int uid){
     return aux;
 }
 
-// 2 ldl
-// 2 lu
-// 2 ln
-
-int insertEndListP(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, PROCESS newProcess){
+int insertEndList(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, PROCESS newProcess){
     ELEM_PROCESS *new=NULL;
     new=(ELEM_PROCESS *) calloc(1, sizeof(ELEM_PROCESS));
     if(new == NULL){
@@ -75,65 +71,74 @@ int insertEndListP(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, PROCESS new
     new->info = newProcess;
     new->previous = NULL;
     new->next = NULL;
-    if(*endListP == NULL){
-        *iniListP = new;
-        *endListP = new;
+    if(*endList == NULL){
+        *iniList = new;
+        *endList = new;
     } else{
-        new->previous=*endListP;
-        (*endListP)->next=new;
-        *endListP=new;
+        new->previous=*endList;
+        (*endList)->next=new;
+        *endList=new;
     }
     return 0;
 }
 
-int insertIniListP(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, PROCESS newProcess){
+int insertIniList(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, PROCESS newProcess){
     ELEM_PROCESS *new=NULL;
     new=(ELEM_PROCESS *) calloc(1, sizeof(ELEM_PROCESS));
     if(new==NULL) printf("Out of memory\n");
     new->info = newProcess;
     new->previous = NULL;
     new->next = NULL;
-    if(*iniListP==NULL){
-        *iniListP=new;
-        *endListP=new;
+    if(*iniList==NULL){
+        *iniList=new;
+        *endList=new;
     } else{
-        new->next = *iniListP;
-        (*iniListP)->previous=new;
-        *iniListP=new;
+        new->next = *iniList;
+        (*iniList)->previous=new;
+        *iniList=new;
     }
     return 0;
 }
 
-int removeListP(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, int num){
-    ELEM_PROCESS *aux=*iniListP;
+int removeListP(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, int num){
+    ELEM_PROCESS *aux=*iniList;
     while (aux!=NULL && aux->info.pid != num) aux = aux->next;
     if(aux == NULL) return -1;
     if(aux->previous == NULL){
-        *iniListP = aux->next;
-        if(*iniListP!=NULL) (*iniListP)->previous=NULL;
+        *iniList = aux->next;
+        if(*iniList!=NULL) (*iniList)->previous=NULL;
     } else {aux->previous->next = aux->next;}
     if(aux->next == NULL){
-        *endListP=aux->previous;
-        if(*endListP!=NULL) (*endListP)->next=NULL;
+        *endList=aux->previous;
+        if(*endList!=NULL) (*endList)->next=NULL;
     } else{aux->next->previous = aux->previous;}
     free(aux); return 0;
 }
 
-int readProcesses(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP){
+int readProcesses(ELEM_PROCESS **iniList, ELEM_PROCESS **endList){
     PROCESS aux;
     FILE *fp = fopen("processes.dat", "rb");
     if(!fp) return -1;
-    while(fread(&aux, sizeof(PROCESS), 1,fp)) insertEndListP(iniListP, endListP ,aux);
+    while(fread(&aux, sizeof(PROCESS), 1,fp)){
+        if(aux.created_at != NULL){
+            insertEndList(iniList, endList ,aux);
+        }else{
+            if(aux.urgency == 0) insertEndList(iniList, endList ,aux);
+            if(aux.urgency == 1) insertEndList(iniList, endList ,aux);
+        }
+    }
     fclose(fp);
     return 0;
 }
 
-int saveProcesses(ELEM_PROCESS *iniListP){
+int saveProcesses(ELEM_PROCESS *iniListP, ELEM_PROCESS *iniListU, ELEM_PROCESS *iniListN){
     ELEM_PROCESS *aux = NULL;
     FILE *fp = NULL;
     fp=fopen("processes.dat", "wb");
     if(fp==NULL) return -1;
-    for(aux = iniListP; aux != NULL; aux=aux->next) fwrite(aux, sizeof(PROCESS), 1, fp);
+    for(aux = iniListP; aux != NULL; aux=aux->next) fwrite((&aux->info), sizeof(PROCESS), 1, fp);
+    for(aux = iniListU; aux != NULL; aux=aux->next) fwrite((&aux->info), sizeof(PROCESS), 1, fp);
+    for(aux = iniListN; aux != NULL; aux=aux->next) fwrite((&aux->info), sizeof(PROCESS), 1, fp);
     fclose(fp);
     return 0;
 }
@@ -159,24 +164,24 @@ int printMenuP(int isadmin){
     return op;
 }
 
-void processes(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, int uid, int isadmin){
+void processes(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, int uid, int isadmin){
     int op, n_processes;
-    n_processes = getsizeP(*iniListP);
+    n_processes = getsizeP(*iniList);
     PROCESS newProcess;
     do {
         op = printMenuP(isadmin);
         switch (op) {
             case 1:
                 newProcess = frontEndProcesses(&n_processes, uid);
-                insertEndListP(iniListP, endListP, newProcess);
-                saveProcesses(*iniListP);
+                insertendList(iniList, endList, newProcess);
+                saveProcesses(*iniList);
                 break;
             case 2:
-                listProcessesUser(*iniListP, uid);
+                listProcessesUser(*iniList, uid);
                 system("pause");
                 break;
             case 3:
-                listProcesses(*iniListP, n_processes);
+                listProcesses(*iniList, n_processes);
                 system("pause");
                 break;
             case 4:

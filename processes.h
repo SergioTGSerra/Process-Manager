@@ -17,7 +17,7 @@ typedef struct process{
 }PROCESS;
 
 /**
- * @desc Processed processes
+ * @desc Processes
  */
 
 typedef struct Elem_process{
@@ -26,26 +26,7 @@ typedef struct Elem_process{
     struct Elem_process *previous;
 }ELEM_PROCESS;
 
-/**
- * @desc Queue Urgency
- */
-typedef struct Elem_processU{
-    PROCESS info;
-    struct Elem_process *next;
-    struct Elem_process *previous;
-}ELEM_PROCESSU;
-
-/**
- * @desc Queue Normal
- */
-
-typedef struct Elem_processN{
-    PROCESS info;
-    struct Elem_process *next;
-    struct Elem_process *previous;
-}ELEM_PROCESSN;
-
-void processes(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, int uid, int isadmin);
-int readProcesses(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP);
+void processes(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, int uid, int isadmin);
+int readProcesses(ELEM_PROCESS **iniList, ELEM_PROCESS **endList);
 
 #endif //TP_PROG1_PROCESSES_H

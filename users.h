@@ -15,6 +15,7 @@ typedef struct user{
 typedef struct Elem_user{
     USER info;
     struct Elem_user *next;
+    struct Elem_user *previous;
 }ELEM_USER;
 
 void users(ELEM_USER **iniListU);

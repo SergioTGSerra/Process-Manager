@@ -53,14 +53,16 @@ int main() {
 
     //List Processes
     ELEM_PROCESS *iniListP=NULL, *endListP=NULL; readProcesses(&iniListP, &endListP);
+    ELEM_PROCESS *iniListPU=NULL, *endListPU=NULL; readProcesses(&iniListPU, &endListPU);
+    ELEM_PROCESS *iniListPN=NULL, *endListPN=NULL; readProcesses(&iniListPN, &endListPN);
 
     int uid, isadmin; //User ID
-    do{
+    while(TRUE){
         isadmin = login(&iniListU, &uid); // 1 = Admin | 0 = User
         if(isadmin == 1){
             menuAdmin(&iniListU, &iniListP, &endListP, uid, isadmin);
         }else{
             processes(&iniListP, &endListP, uid, isadmin);
         }
-    }while(1);
+    }
 }
