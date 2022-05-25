@@ -46,14 +46,24 @@ PROCESS frontEndProcesses(int *n_processes, int uid){
     scanf("%s", &aux.name);
     printf("Intruza a descrição do processo: ");
     scanf("%s", &aux.desc);
-    printf("Urgente? (Sim | Não): ");
-    scanf("%s", &auxs);
-    if(strcmp(auxs, "Sim") == 0) aux.urgency = 1; else aux.urgency = 0;
     aux.owner = uid;
     aux.created_at = localtime( &rawtime );
     aux.executed_at = NULL;
+
+    printf("Urgente? (Sim | Não): ");
+    scanf("%s", &auxs);
+    if(strcmp(auxs, "Sim") == 0) aux.urgency = 1; else aux.urgency = 0;
+
+    //se é urgente insere na queue de urgentes
+    //se n é urgente isere nos normais
+    //queues insere no inicio remove do fim
+
     return aux;
 }
+
+// 2 ldl
+// 2 lu
+// 2 ln
 
 int insertEndListP(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, PROCESS newProcess){
     ELEM_PROCESS *new=NULL;
@@ -74,6 +84,39 @@ int insertEndListP(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, PROCESS new
         *endListP=new;
     }
     return 0;
+}
+
+int insertIniListP(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, PROCESS newProcess){
+    ELEM_PROCESS *new=NULL;
+    new=(ELEM_PROCESS *) calloc(1, sizeof(ELEM_PROCESS));
+    if(new==NULL) printf("Out of memory\n");
+    new->info = newProcess;
+    new->previous = NULL;
+    new->next = NULL;
+    if(*iniListP==NULL){
+        *iniListP=new;
+        *endListP=new;
+    } else{
+        new->next = *iniListP;
+        (*iniListP)->previous=new;
+        *iniListP=new;
+    }
+    return 0;
+}
+
+int removeListP(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, int num){
+    ELEM_PROCESS *aux=*iniListP;
+    while (aux!=NULL && aux->info.pid != num) aux = aux->next;
+    if(aux == NULL) return -1;
+    if(aux->previous == NULL){
+        *iniListP = aux->next;
+        if(*iniListP!=NULL) (*iniListP)->previous=NULL;
+    } else {aux->previous->next = aux->next;}
+    if(aux->next == NULL){
+        *endListP=aux->previous;
+        if(*endListP!=NULL) (*endListP)->next=NULL;
+    } else{aux->next->previous = aux->previous;}
+    free(aux); return 0;
 }
 
 int readProcesses(ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP){
