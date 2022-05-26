@@ -11,32 +11,32 @@ int getsizeP(ELEM_PROCESS *iniList){
 }
 
 /**
- * @desc Listagens de processos
+ * @desc Listing Processes
  */
 
-void listProcesses(ELEM_PROCESS *iniList, int n_processes){
+void listProcesses(ELEM_PROCESS *iniList){
     ELEM_PROCESS *aux;
-    if(n_processes != 0) for(aux = iniList; aux != NULL; aux=aux->next) printf("%d - %s \n",aux->info.pid, aux->info.name);
-    else printf("\n\tSem nenhum processo registado no momento!\n\n");
+    for(aux = iniList; aux != NULL; aux=aux->next) printf("%d - %s \n",aux->info.pid, aux->info.name);
 }
 
 int listProcessesUser(ELEM_PROCESS *iniList, int uid){
     ELEM_PROCESS *aux;
     int flag = 0;
-    for(aux = iniList; aux != NULL; aux=aux->next) if(aux->info.owner == uid){
+    for(aux = iniList; aux != NULL; aux=aux->next){
+        if(aux->info.owner == uid){
             printf("%d - %s \n",aux->info.pid, aux->info.name);
             flag = 1;
-            return 0;
+        }
     }
-    return -1;
+    if(flag == 1) return 1;
+    else return 0;
 }
 
 void infoProcess(ELEM_PROCESS *iniList, int pid){
-
 }
 
 /**
- * @desc List Processes
+ * @desc Processes
  */
 
 int insertEndList(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, PROCESS newProcess){
@@ -63,7 +63,10 @@ int insertEndList(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, PROCESS newPro
 int insertIniList(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, PROCESS newProcess){
     ELEM_PROCESS *new=NULL;
     new=(ELEM_PROCESS *) calloc(1, sizeof(ELEM_PROCESS));
-    if(new==NULL) printf("Out of memory\n");
+    if(new==NULL){
+        printf("Out of memory\n");
+        return -1;
+    }
     new->info = newProcess;
     new->previous = NULL;
     new->next = NULL;
@@ -92,15 +95,9 @@ PROCESS frontEndProcesses(int *n_processes, int uid){
     aux.owner = uid;
     aux.created_at = localtime( &rawtime );
     aux.executed_at = NULL;
-
     printf("Urgente? (Sim | Não): ");
     scanf("%s", &auxs);
-    if(strcmp(auxs, "Sim") == 0) aux.urgency = 1; else aux.urgency = 0;
-
-    //se é urgente insere na queue de urgentes
-    //se n é urgente isere nos normais
-    //queues insere no inicio remove do fim
-
+    if(strcmp(auxs, "Sim") == 0) aux.type = 1; else aux.type = 0;
     return aux;
 }
 
@@ -119,18 +116,11 @@ int removeListP(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, int num){
     free(aux); return 0;
 }
 
-int readProcesses(ELEM_PROCESS **iniList, ELEM_PROCESS **endList){
+int readProcesses(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, int type){
     PROCESS aux;
     FILE *fp = fopen("processes.dat", "rb");
     if(!fp) return -1;
-    while(fread(&aux, sizeof(PROCESS), 1,fp)){
-        if(aux.created_at != NULL){
-            insertEndList(iniList, endList ,aux);
-        }else{
-            if(aux.urgency == 0) insertEndList(iniList, endList ,aux);
-            if(aux.urgency == 1) insertEndList(iniList, endList ,aux);
-        }
-    }
+    while(fread(&aux, sizeof(PROCESS), 1,fp)) if(aux.type == type) insertEndList(iniList, endList ,aux);
     fclose(fp);
     return 0;
 }
@@ -172,31 +162,42 @@ int printMenuP(int isadmin){
 void processes(int uid, int isadmin){
 
     //List Processes
-    ELEM_PROCESS *iniList=NULL, *endList=NULL; readProcesses(&iniList, &endList);
-    ELEM_PROCESS *iniListU=NULL, *endListU=NULL; readProcesses(&iniListU, &endListU);
-    ELEM_PROCESS *iniListN=NULL, *endListN=NULL; readProcesses(&iniListN, &endListN);
-    ELEM_PROCESS *iniListR=NULL, *endListR=NULL; readProcesses(&iniListR, &endListR);
+    ELEM_PROCESS *iniListP=NULL, *endListP=NULL; readProcesses(&iniListP, &endListP, 2);
+    ELEM_PROCESS *iniListU=NULL, *endListU=NULL; readProcesses(&iniListU, &endListU, 1);
+    ELEM_PROCESS *iniListN=NULL, *endListN=NULL; readProcesses(&iniListN, &endListN, 0);
+    ELEM_PROCESS *iniListR=NULL, *endListR=NULL; readProcesses(&iniListR, &endListR, -1);
 
     int op, n_processes;
-    n_processes = getsizeP(iniList) + getsizeP(iniListU) + getsizeP(iniListN) + getsizeP(iniListR);
+    n_processes = getsizeP(iniListP) + getsizeP(iniListU) + getsizeP(iniListN) + getsizeP(iniListR);
     PROCESS newProcess;
     do {
         op = printMenuP(isadmin);
         switch (op) {
             case 1:
                 newProcess = frontEndProcesses(&n_processes, uid);
-                if(newProcess.urgency == 0) insertEndList(&iniListU, &endListU, newProcess);
-                if(newProcess.urgency == 1) insertEndList(&iniListN, &endListN, newProcess);
-                saveProcesses(iniList, iniListU, iniListN, iniListR);
+                if(newProcess.type == 0) insertEndList(&iniListN, &endListN, newProcess);
+                if(newProcess.type == 1) insertEndList(&iniListU, &endListU, newProcess);
+                saveProcesses(iniListP, iniListU, iniListN, iniListR);
                 break;
             case 2:
-                if(listProcessesUser(iniList, uid) && listProcessesUser(iniListU, uid) && listProcessesUser(iniListN, uid) && listProcessesUser(iniListR, uid)){
-                    printf("\n\tUtilizador sem preocessos!\n");
+                if(listProcessesUser(iniListP, uid) && listProcessesUser(iniListU, uid) && listProcessesUser(iniListN, uid) && listProcessesUser(iniListR, uid)){
+                    printf("\n\tUtilizador sem processos!\n");
                 }
                 system("pause");
                 break;
             case 3:
-                listProcesses(iniList, n_processes);
+                if(n_processes != 0){
+                    printf("Processos Processados\n");
+                    listProcesses(iniListP);
+                    printf("Processos Urgentes\n");
+                    listProcesses(iniListU);
+                    printf("Processos Normais\n");
+                    listProcesses(iniListN);
+                    printf("Processos Recusados\n");
+                    listProcesses(iniListR);
+                } else{
+                    printf("Não existem processos!");
+                }
                 system("pause");
                 break;
             case 4:

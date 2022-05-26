@@ -51,7 +51,7 @@ int main() {
     //List Users
     ELEM_USER *iniListU=NULL; readUsers(&iniListU);
 
-    int uid, isadmin; //User ID
+    int uid, isadmin;
     while(TRUE){
         isadmin = login(&iniListU, &uid); // 1 = Admin | 0 = User
         if(isadmin == 1){

@@ -10,7 +10,7 @@ typedef struct process{
     int pid;
     char name[50];
     char desc[250];
-    int urgency; // 1 - urgent | 0 - normal
+    int type; // 1 - urgent | 0 - normal | -1 recused | 2 - processed
     int owner;
     struct tm *created_at;
     struct tm *executed_at;
