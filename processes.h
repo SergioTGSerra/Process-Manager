@@ -26,7 +26,6 @@ typedef struct Elem_process{
     struct Elem_process *previous;
 }ELEM_PROCESS;
 
-void processes(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, int uid, int isadmin);
-int readProcesses(ELEM_PROCESS **iniList, ELEM_PROCESS **endList);
+void processes(int uid, int isadmin);
 
 #endif //TP_PROG1_PROCESSES_H

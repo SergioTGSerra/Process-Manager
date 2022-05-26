@@ -3,7 +3,7 @@
 #include "users.h"
 #include "processes.h"
 
-void menuAdmin(ELEM_USER **iniListU, ELEM_PROCESS **iniListP, ELEM_PROCESS **endListP, int uid, int isadmin){
+void menuAdmin(ELEM_USER **iniListU, int uid, int isadmin){
     int op;
     do {
         system("cls");
@@ -16,7 +16,7 @@ void menuAdmin(ELEM_USER **iniListU, ELEM_PROCESS **iniListP, ELEM_PROCESS **end
         printf("> "); scanf("%i", &op);
         switch (op) {
             case 1:
-                processes(iniListP, endListP, uid, isadmin);
+                processes(uid, isadmin);
                 break;
             case 2:
                 users(iniListU);
@@ -51,18 +51,13 @@ int main() {
     //List Users
     ELEM_USER *iniListU=NULL; readUsers(&iniListU);
 
-    //List Processes
-    ELEM_PROCESS *iniListP=NULL, *endListP=NULL; readProcesses(&iniListP, &endListP);
-    ELEM_PROCESS *iniListPU=NULL, *endListPU=NULL; readProcesses(&iniListPU, &endListPU);
-    ELEM_PROCESS *iniListPN=NULL, *endListPN=NULL; readProcesses(&iniListPN, &endListPN);
-
     int uid, isadmin; //User ID
     while(TRUE){
         isadmin = login(&iniListU, &uid); // 1 = Admin | 0 = User
         if(isadmin == 1){
-            menuAdmin(&iniListU, &iniListP, &endListP, uid, isadmin);
+            menuAdmin(&iniListU, uid, isadmin);
         }else{
-            processes(&iniListP, &endListP, uid, isadmin);
+            processes(uid, isadmin);
         }
     }
 }
