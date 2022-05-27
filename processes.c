@@ -16,17 +16,15 @@ int getsizeP(ELEM_PROCESS *iniList){
 
 void listProcesses(ELEM_PROCESS *iniList){
     ELEM_PROCESS *aux;
-    for(aux = iniList; aux != NULL; aux=aux->next) printf("%d - %s \n",aux->info.pid, aux->info.name);
+    for(aux = iniList; aux != NULL; aux=aux->next) printf("\t%d - %s \n",aux->info.pid, aux->info.name);
 }
 
 int listProcessesUser(ELEM_PROCESS *iniList, int uid){
     ELEM_PROCESS *aux;
     int flag = 0;
-    for(aux = iniList; aux != NULL; aux=aux->next){
-        if(aux->info.owner == uid){
-            printf("%d - %s \n",aux->info.pid, aux->info.name);
-            flag = 1;
-        }
+    for(aux = iniList; aux != NULL; aux=aux->next) if(aux->info.owner == uid){
+        printf("\t %d - %s \n",aux->info.pid, aux->info.name);
+        flag = 1;
     }
     if(flag == 1) return 1;
     else return 0;
@@ -159,6 +157,13 @@ int printMenuP(int isadmin){
     return op;
 }
 
+void header(int type){
+    if(type == 2) printf("\n*****************************\n*** Processos Processados ***\n*****************************\n");
+    if(type == 1)printf("\n*****************************\n**** Processos  Urgentes ****\n*****************************\n");
+    if(type == 0)printf("\n*****************************\n***** Processos Normais *****\n*****************************\n");
+    if(type == -1)printf("\n*****************************\n**** Processos Recusados ****\n*****************************\n");
+}
+
 void processes(int uid, int isadmin){
 
     //List Processes
@@ -180,20 +185,25 @@ void processes(int uid, int isadmin){
                 saveProcesses(iniListP, iniListU, iniListN, iniListR);
                 break;
             case 2:
-                if(listProcessesUser(iniListP, uid) && listProcessesUser(iniListU, uid) && listProcessesUser(iniListN, uid) && listProcessesUser(iniListR, uid)){
-                    printf("\n\tUtilizador sem processos!\n");
-                }
+                header(2);
+                if(!listProcessesUser(iniListP, uid)) printf("\tNão existem processos processados!\n");
+                header(1);
+                if(!listProcessesUser(iniListU, uid)) printf("\tNão existem processos urgentes!\n");
+                header(0);
+                if(!listProcessesUser(iniListN, uid)) printf("\tNão existem processos normais!\n");
+                header(-1);
+                if(!listProcessesUser(iniListR, uid)) printf("\tNão existem processos recusados!\n\n");
                 system("pause");
                 break;
             case 3:
                 if(n_processes != 0){
-                    printf("Processos Processados\n");
+                    header(2);
                     listProcesses(iniListP);
-                    printf("Processos Urgentes\n");
+                    header(1);
                     listProcesses(iniListU);
-                    printf("Processos Normais\n");
+                    header(0);
                     listProcesses(iniListN);
-                    printf("Processos Recusados\n");
+                    header(-1);
                     listProcesses(iniListR);
                 } else{
                     printf("Não existem processos!");
