@@ -19,6 +19,12 @@ void listProcesses(ELEM_PROCESS *iniList){
     for(aux = iniList; aux != NULL; aux=aux->next) printf("\t%d - %s \n",aux->info.pid, aux->info.name);
 }
 
+void listReverseProcesses(ELEM_PROCESS *endList){
+    ELEM_PROCESS *aux;
+    for(aux = endList; aux != NULL; aux=aux->previous) printf("\t%d - %s \n",aux->info.pid, aux->info.name);
+}
+
+
 int listProcessesUser(ELEM_PROCESS *iniList, int uid){
     ELEM_PROCESS *aux;
     int flag = 0;
@@ -30,7 +36,19 @@ int listProcessesUser(ELEM_PROCESS *iniList, int uid){
     else return 0;
 }
 
-void infoProcess(ELEM_PROCESS *iniList, int pid){
+PROCESS infoProcess(ELEM_PROCESS *iniList, int pid){
+    ELEM_PROCESS *aux;
+    for(aux = iniList; aux != NULL; aux=aux->next) if(aux->info.pid == pid){
+            printf("\nNome: %s", &aux->info.name);
+            printf("\nDescirção: %s", &aux->info.desc);
+            printf("\nTipo: ");
+            if(aux->info.type == 1) printf("Urgente");
+            if(aux->info.type == 0) printf("Normal");
+            if(aux->info.type == -1) printf("Recusado");
+            if(aux->info.type == 2) printf("Processado");
+            printf("\nCriado em: %d do %d de %d as %d horas e %d minutos", &aux->info.created_at->tm_min, &aux->info.created_at->tm_mon, &aux->info.created_at->tm_year, &aux->info.created_at->tm_hour, &aux->info.created_at->tm_min);
+        return aux->info;
+    }
 }
 
 /**
@@ -150,6 +168,7 @@ int printMenuP(int isadmin){
     printf("\n\t2 - Listar meus processos\n");
     if(isadmin == 1) printf("\n\t3 - Listar todos os processos\n");
     if(isadmin == 1) printf("\n\t4 - Executar processos\n");
+    if(isadmin == 1) printf("\n\t5 - Listar processos recusados\n");
     printf("\n\t0 - Voltar\n");
     printf("> ");
     scanf("%d", &op);
@@ -159,9 +178,9 @@ int printMenuP(int isadmin){
 
 void header(int type){
     if(type == 2) printf("\n*****************************\n*** Processos Processados ***\n*****************************\n");
-    if(type == 1)printf("\n*****************************\n**** Processos  Urgentes ****\n*****************************\n");
-    if(type == 0)printf("\n*****************************\n***** Processos Normais *****\n*****************************\n");
-    if(type == -1)printf("\n*****************************\n**** Processos Recusados ****\n*****************************\n");
+    if(type == 1) printf("\n*****************************\n**** Processos  Urgentes ****\n*****************************\n");
+    if(type == 0) printf("\n*****************************\n***** Processos Normais *****\n*****************************\n");
+    if(type == -1) printf("\n*****************************\n**** Processos Recusados ****\n*****************************\n");
 }
 
 void processes(int uid, int isadmin){
@@ -173,16 +192,29 @@ void processes(int uid, int isadmin){
     ELEM_PROCESS *iniListR=NULL, *endListR=NULL; readProcesses(&iniListR, &endListR, -1);
 
     int op, n_processes;
+    char auxs[20];
     n_processes = getsizeP(iniListP) + getsizeP(iniListU) + getsizeP(iniListN) + getsizeP(iniListR);
     PROCESS newProcess;
+
     do {
         op = printMenuP(isadmin);
         switch (op) {
             case 1:
                 newProcess = frontEndProcesses(&n_processes, uid);
-                if(newProcess.type == 0) insertEndList(&iniListN, &endListN, newProcess);
-                if(newProcess.type == 1) insertEndList(&iniListU, &endListU, newProcess);
+                if(newProcess.type == 0 && getsizeP(iniListN) >= 3){
+                    printf("\nLista de processos normais cheia (max: 15)! A inserir processo em recusados... \n");
+                    newProcess.type = -1;
+                    insertEndList(&iniListR, &endListR, newProcess);
+                }
+                if(newProcess.type == 1 && getsizeP(iniListU) >= 3){
+                    printf("\nLista de processos urgentes cheia (max: 15)! A inserir processo em recusados... \n");
+                    newProcess.type = -1;
+                    insertEndList(&iniListR, &endListR, newProcess);
+                }
+                if(newProcess.type == 0 && getsizeP(iniListN) < 3) insertIniList(&iniListN, &endListN, newProcess);
+                if(newProcess.type == 1 && getsizeP(iniListU) < 3) insertIniList(&iniListU, &endListU, newProcess);
                 saveProcesses(iniListP, iniListU, iniListN, iniListR);
+                system("pause");
                 break;
             case 2:
                 header(2);
@@ -200,22 +232,33 @@ void processes(int uid, int isadmin){
                     header(2);
                     listProcesses(iniListP);
                     header(1);
-                    listProcesses(iniListU);
+                    listReverseProcesses(endListU);
                     header(0);
-                    listProcesses(iniListN);
+                    listReverseProcesses(endListN);
                     header(-1);
                     listProcesses(iniListR);
-                } else{
-                    printf("Não existem processos!");
-                }
+                } else printf("Não existem processos!\n");
                 system("pause");
                 break;
             case 4:
                 break;
+            case 5:
+                header(-1);
+                listProcesses(iniListR);
+                printf("\nDeseja inserir um processo recusado para uma lista de espera? (Sim|Não): ");
+                scanf("%s", &auxs);
+                if(strcmp(auxs, "Sim") == 0){
+                    printf("\n Insira o numero de um processo acima para inserir numa lista de espera: ");
+                    scanf("%d", &op);
+                    infoProcess(iniListR, op);
+                    system("pause");
+                }
+                system("pause");
+                break;
             case 0:
                 break;
             default:
-                printf("Inseriu a opção errada!");
+                printf("Inseriu a opção errada!\n");
                 break;
         }
     } while (op != 0);
