@@ -6,14 +6,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MAX_PROCESSES 1
+
 typedef struct process{
     int pid;
     char name[50];
     char desc[250];
     int type; // 1 - urgent | 0 - normal | -1 recused | 2 - processed
     int owner;
-    struct tm *created_at;
-    struct tm *executed_at;
+    struct tm created_at;
+    struct tm executed_at;
 }PROCESS;
 
 /**
