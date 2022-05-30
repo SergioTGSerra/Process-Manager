@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_PROCESSES 1
+#define MAX_PROCESSES 2
 
 typedef struct process{
     int pid;

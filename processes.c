@@ -24,6 +24,19 @@ void listReverseProcesses(ELEM_PROCESS *endList){
     for(aux = endList; aux != NULL; aux=aux->previous) printf("\t%d - %s \n",aux->info.pid, aux->info.name);
 }
 
+void ordenaNome(ELEM_PROCESS *iniList){
+    ELEM_PROCESS *aux;
+    ELEM_PROCESS *auxj;
+    int sizeL = getsizeP(iniList);
+    for (aux = iniList; aux != NULL; aux=aux->next) {
+        for(auxj = iniList; auxj != NULL; auxj=auxj->next){
+            if(aux->info.name > auxj->info.name){
+
+            }
+        }
+    }
+}
+
 int listProcessesUser(ELEM_PROCESS *iniList, int uid){
     ELEM_PROCESS *aux;
     int flag = 0;

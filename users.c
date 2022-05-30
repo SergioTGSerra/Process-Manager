@@ -1,5 +1,10 @@
 #include "users.h"
 
+char* getUserName(ELEM_USER *iniList, int uid){
+    ELEM_USER *aux;
+    for(aux = iniList; aux != NULL; aux=aux->next) if(aux->info.id == uid) return aux->info.user;
+}
+
 USER insertUser(int *n_users){
     char auxs[10];
     int flag = 0;
