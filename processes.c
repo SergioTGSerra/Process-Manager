@@ -10,6 +10,15 @@ int getsizeP(ELEM_PROCESS *iniList){
     return size;
 }
 
+int readProcesses(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, int type){
+    PROCESS aux;
+    FILE *fp = fopen("processes.dat", "rb");
+    if(!fp) return -1;
+    while(fread(&aux, sizeof(PROCESS), 1,fp)) if(aux.type == type) insertEndList(iniList, endList ,aux);
+    fclose(fp);
+    return 0;
+}
+
 /**
  * @desc Listing Processes
  */
@@ -24,17 +33,56 @@ void listReverseProcesses(ELEM_PROCESS *endList){
     for(aux = endList; aux != NULL; aux=aux->previous) printf("\t%d - %s \n",aux->info.pid, aux->info.name);
 }
 
-void ordenaNome(ELEM_PROCESS *iniList){
-    ELEM_PROCESS *aux;
-    ELEM_PROCESS *auxj;
-    int sizeL = getsizeP(iniList);
-    for (aux = iniList; aux != NULL; aux=aux->next) {
-        for(auxj = iniList; auxj != NULL; auxj=auxj->next){
-            if(aux->info.name > auxj->info.name){
+/*Function to swap the nodes */
+ELEM_PROCESS *swap(ELEM_PROCESS *ptr1, ELEM_PROCESS *ptr2){
+    ELEM_PROCESS *tmp = ptr2->next;
+    ptr2->next = ptr1;
+    ptr1->next = tmp;
+    return ptr2;
+}
 
+int bubbleSort(){
+    ELEM_PROCESS *iniList=NULL, *endList=NULL;
+    readProcesses(&iniList, &endList, 2);
+    readProcesses(&iniList, &endList, 1);
+    readProcesses(&iniList, &endList, 0);
+    readProcesses(&iniList, &endList, -1);
+
+    typedef struct {
+
+    }ELEM_TEMP;
+
+    ELEM_PROCESS aux;
+    int i, j, swapped, count;
+    count = getsizeP(iniList);
+
+    for (aux = iniList; aux != NULL; aux=aux->next)
+
+    for (i = 0; i <= count; i++) {
+
+        h = head;
+        swapped = 0;
+
+        for (j = 0; j < count - i - 1; j++) {
+
+            ELEM_PROCESS *p1 = *h;
+            ELEM_PROCESS *p2 = p1->next;
+
+            if (p1->info.owner > p2->info.owner) {
+
+                /* update the link after swapping */
+                *h = swap(p1, p2);
+                swapped = 1;
             }
+
+            h = &(*h)->next;
         }
+
+        /* break if the loop ended without any swap */
+        if (swapped == 0)
+            break;
     }
+    return 0;
 }
 
 int listProcessesUser(ELEM_PROCESS *iniList, int uid){
@@ -164,15 +212,6 @@ int removeListP(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, int num){
         if(*endList!=NULL) (*endList)->next=NULL;
     } else{aux->next->previous = aux->previous;}
     free(aux); return 0;
-}
-
-int readProcesses(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, int type){
-    PROCESS aux;
-    FILE *fp = fopen("processes.dat", "rb");
-    if(!fp) return -1;
-    while(fread(&aux, sizeof(PROCESS), 1,fp)) if(aux.type == type) insertEndList(iniList, endList ,aux);
-    fclose(fp);
-    return 0;
 }
 
 int saveProcesses(ELEM_PROCESS *iniListP, ELEM_PROCESS *iniListU, ELEM_PROCESS *iniListN, ELEM_PROCESS *iniListR){
