@@ -1,13 +1,52 @@
 #include "processes.h"
 
-/**
- * @desc Get size from list
- */
 int getsizeP(ELEM_PROCESS *iniList){
     int size = 0;
     ELEM_PROCESS *aux = NULL;
     for (aux = iniList; aux != NULL; aux=aux->next) size++;
     return size;
+}
+
+int insertEndList(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, PROCESS newProcess){
+    ELEM_PROCESS *new=NULL;
+    new=(ELEM_PROCESS *) calloc(1, sizeof(ELEM_PROCESS));
+    if(new == NULL){
+        printf("OUT OF MEMORY!\n");
+        return -1;
+    }
+    new->info = newProcess;
+    new->previous = NULL;
+    new->next = NULL;
+    if(*endList == NULL){
+        *iniList = new;
+        *endList = new;
+    } else{
+        new->previous=*endList;
+        (*endList)->next=new;
+        *endList=new;
+    }
+    return 0;
+}
+
+int insertIniList(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, PROCESS newProcess){
+    ELEM_PROCESS *new=NULL;
+    new=(ELEM_PROCESS *) calloc(1, sizeof(ELEM_PROCESS));
+    if(new==NULL){
+        printf("Out of memory\n");
+        return -1;
+    }
+    new->info = newProcess;
+    new->previous = NULL;
+    new->next = NULL;
+    if(*iniList==NULL){
+        *iniList=new;
+        *endList=new;
+    } else{
+        new->next = *iniList;
+        (*iniList)->previous=new;
+        *iniList=new;
+    }
+    return 0;
 }
 
 int readProcesses(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, int type){
@@ -19,9 +58,26 @@ int readProcesses(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, int type){
     return 0;
 }
 
-/**
- * @desc Listing Processes
- */
+/* void ordenaNome(){
+    ELEM_PROCESS *iniList=NULL, *endList=NULL;
+    ELEM_PROCESS *novo, *novoN;
+    readProcesses(&iniList, &endList, 2); readProcesses(&iniList, &endList, 1); readProcesses(&iniList, &endList, 0); readProcesses(&iniList, &endList, -1);
+    PROCESS temp;
+
+    for (novo = iniList; novo != NULL; novo = novo->next) {
+        for (novoN = iniList; novoN->next != NULL; novoN = novoN->next) {
+            if (strcmp(getUserName(novoN->info.owner), getUserName(novoN->next->info.owner)) > 0) {
+                temp = novoN->info;
+                novoN->info = novoN->next->info;
+                novoN->next->info = temp;
+            }
+        }
+    }
+
+    for (novo = novoN; novo != NULL; novo = novo->next) printf("%s", getUserName(novo->info.owner));
+
+    system("pause");
+} */
 
 void listProcesses(ELEM_PROCESS *iniList){
     ELEM_PROCESS *aux;
@@ -31,58 +87,6 @@ void listProcesses(ELEM_PROCESS *iniList){
 void listReverseProcesses(ELEM_PROCESS *endList){
     ELEM_PROCESS *aux;
     for(aux = endList; aux != NULL; aux=aux->previous) printf("\t%d - %s \n",aux->info.pid, aux->info.name);
-}
-
-/*Function to swap the nodes */
-ELEM_PROCESS *swap(ELEM_PROCESS *ptr1, ELEM_PROCESS *ptr2){
-    ELEM_PROCESS *tmp = ptr2->next;
-    ptr2->next = ptr1;
-    ptr1->next = tmp;
-    return ptr2;
-}
-
-int bubbleSort(){
-    ELEM_PROCESS *iniList=NULL, *endList=NULL;
-    readProcesses(&iniList, &endList, 2);
-    readProcesses(&iniList, &endList, 1);
-    readProcesses(&iniList, &endList, 0);
-    readProcesses(&iniList, &endList, -1);
-
-    typedef struct {
-
-    }ELEM_TEMP;
-
-    ELEM_PROCESS aux;
-    int i, j, swapped, count;
-    count = getsizeP(iniList);
-
-    for (aux = iniList; aux != NULL; aux=aux->next)
-
-    for (i = 0; i <= count; i++) {
-
-        h = head;
-        swapped = 0;
-
-        for (j = 0; j < count - i - 1; j++) {
-
-            ELEM_PROCESS *p1 = *h;
-            ELEM_PROCESS *p2 = p1->next;
-
-            if (p1->info.owner > p2->info.owner) {
-
-                /* update the link after swapping */
-                *h = swap(p1, p2);
-                swapped = 1;
-            }
-
-            h = &(*h)->next;
-        }
-
-        /* break if the loop ended without any swap */
-        if (swapped == 0)
-            break;
-    }
-    return 0;
 }
 
 int listProcessesUser(ELEM_PROCESS *iniList, int uid){
@@ -132,52 +136,6 @@ PROCESS *getLastFromUser(ELEM_PROCESS *endList, int uid){
     ELEM_PROCESS *aux;
     for(aux = endList; aux != NULL; aux=aux->previous) if(aux->info.owner == uid) return &(aux->info);
     return NULL;
-}
-
-/**
- * @desc Processes
- */
-
-int insertEndList(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, PROCESS newProcess){
-    ELEM_PROCESS *new=NULL;
-    new=(ELEM_PROCESS *) calloc(1, sizeof(ELEM_PROCESS));
-    if(new == NULL){
-        printf("OUT OF MEMORY!\n");
-        return -1;
-    }
-    new->info = newProcess;
-    new->previous = NULL;
-    new->next = NULL;
-    if(*endList == NULL){
-        *iniList = new;
-        *endList = new;
-    } else{
-        new->previous=*endList;
-        (*endList)->next=new;
-        *endList=new;
-    }
-    return 0;
-}
-
-int insertIniList(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, PROCESS newProcess){
-    ELEM_PROCESS *new=NULL;
-    new=(ELEM_PROCESS *) calloc(1, sizeof(ELEM_PROCESS));
-    if(new==NULL){
-        printf("Out of memory\n");
-        return -1;
-    }
-    new->info = newProcess;
-    new->previous = NULL;
-    new->next = NULL;
-    if(*iniList==NULL){
-        *iniList=new;
-        *endList=new;
-    } else{
-        new->next = *iniList;
-        (*iniList)->previous=new;
-        *iniList=new;
-    }
-    return 0;
 }
 
 PROCESS frontEndProcesses(int *n_processes, int uid){

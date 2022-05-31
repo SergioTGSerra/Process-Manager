@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "users.h"
 
 #define MAX_PROCESSES 2
 

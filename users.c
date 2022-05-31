@@ -1,8 +1,9 @@
 #include "users.h"
-
-char* getUserName(ELEM_USER *iniList, int uid){
-    ELEM_USER *aux;
-    for(aux = iniList; aux != NULL; aux=aux->next) if(aux->info.id == uid) return aux->info.user;
+int getSizeU(ELEM_USER *iniListU){
+    int size=0;
+    ELEM_USER *aux = NULL;
+    for(aux = iniListU; aux != NULL; aux=aux->next) size++;
+    return size;
 }
 
 USER insertUser(int *n_users){
@@ -47,6 +48,13 @@ int insertEndListU(ELEM_USER **iniListU, USER newUser){
     return 0;
 }
 
+char* getUserName(int uid){
+    ELEM_USER *iniList=NULL; readUsers(&iniList);
+    ELEM_USER *aux;
+    for(aux = iniList; aux != NULL; aux=aux->next) if(aux->info.id == uid) return aux->info.user;
+    return NULL;
+}
+
 int saveUsers(ELEM_USER *iniListU){
     ELEM_USER *aux = NULL;
     FILE *fp = NULL;
@@ -69,13 +77,6 @@ int readUsers(ELEM_USER **iniListU){
 void listUsers(ELEM_USER *iniListU){
     ELEM_USER *aux;
     for(aux = iniListU; aux != NULL; aux=aux->next) printf("%s \n", aux->info.user);
-}
-
-int getSizeU(ELEM_USER *iniListU){
-    int size=0;
-    ELEM_USER *aux = NULL;
-    for(aux = iniListU; aux != NULL; aux=aux->next) size++;
-    return size;
 }
 
 int verifyLogin(ELEM_USER *iniList, char name[100], char pass[100], int *uid){
