@@ -7,6 +7,13 @@ int getsizeP(ELEM_PROCESS *iniList){
     return size;
 }
 
+int getsizePUid(ELEM_PROCESS *iniList, int uid){
+    int size = 0;
+    ELEM_PROCESS *aux = NULL;
+    for (aux = iniList; aux != NULL; aux=aux->next) if(aux->info.owner == uid) size++;
+    return size;
+}
+
 int insertEndList(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, PROCESS newProcess){
     ELEM_PROCESS *new=NULL;
     new=(ELEM_PROCESS *) calloc(1, sizeof(ELEM_PROCESS));
@@ -116,12 +123,15 @@ PROCESS *infoProcess(ELEM_PROCESS *iniList, int pid){
     for(aux = iniList; aux != NULL; aux=aux->next) if(aux->info.pid == pid){
         printf("\nNome: %s", aux->info.name);
         printf("\nDescirção: %s", aux->info.desc);
+        printf("\nDono: %s", getUserName(aux->info.owner));
         printf("\nTipo: ");
         if(aux->info.type == 1) printf("Urgente");
         if(aux->info.type == 0) printf("Normal");
         if(aux->info.type == -1) printf("Recusado");
         if(aux->info.type == 2) printf("Processado");
-        printf("\nCriado em: %d/%d/%d as %d horas e %d minutos \n", aux->info.created_at.tm_mday, aux->info.created_at.tm_mon, aux->info.created_at.tm_year + 1900 , aux->info.created_at.tm_hour, aux->info.created_at.tm_min);
+        printf("\nCriado em: %d/%d/%d as %d horas e %d minutos", aux->info.created_at.tm_mday, aux->info.created_at.tm_mon, aux->info.created_at.tm_year + 1900 , aux->info.created_at.tm_hour, aux->info.created_at.tm_min);
+        if(aux->info.executed_at.tm_mday != 0) printf("\nExecutado em: %d/%d/%d as %d horas e %d minutos", aux->info.executed_at.tm_mday, aux->info.executed_at.tm_mon, aux->info.executed_at.tm_year + 1900 , aux->info.executed_at.tm_hour, aux->info.executed_at.tm_min);
+        else printf("\nProcesso ainda não foi executado\n");
         return &(aux->info);
     }
     return NULL;
@@ -140,7 +150,7 @@ PROCESS *getLastFromUser(ELEM_PROCESS *endList, int uid){
 
 PROCESS frontEndProcesses(int *n_processes, int uid){
     time_t rawtime;
-    time( &rawtime );
+    time(&rawtime);
     PROCESS aux;
     char auxs[10];
     (*n_processes)++;
@@ -150,7 +160,7 @@ PROCESS frontEndProcesses(int *n_processes, int uid){
     printf("Intruza a descrição do processo: ");
     scanf("%s", &aux.desc);
     aux.owner = uid;
-    aux.created_at = *localtime( &rawtime );
+    aux.created_at = *localtime(&rawtime);
     printf("Urgente? (Sim | Não): ");
     scanf("%s", &auxs);
     if(strcmp(auxs, "Sim") == 0) aux.type = 1; else aux.type = 0;
@@ -196,10 +206,15 @@ int printMenuP(int isadmin){
     printf("*****     Gerir Processos    *****\n");
     printf("**********************************\n");
     printf("\n\t1 - Adicionar um processo\n"); //Feito
-    printf("\n\t2 - Listar os meus processos\n"); //Listar e editar e remover
-    printf("\n\t3 - Gerir os meus processos recusados\n");
-    if(isadmin == 1) printf("\n\t4 - Listar todos os processos\n");
+    printf("\n\t2 - Listar ou remover os meus processos\n"); //Feito
+    printf("\n\t3 - Gerir os meus processos recusados\n"); //Feito
+    if(isadmin == 1) printf("\n\t4 - Listar todos os processos\n"); //Feito
     if(isadmin == 1) printf("\n\t5 - Executar processos\n"); //Feito
+    if(isadmin == 1) printf("\n\t6 - Procurar processo por id\n");
+    printf("**********************************\n");
+    printf("*******     Estatisticas    ******\n");
+    printf("**********************************\n");
+    if(isadmin == 1) printf("\n\t7 - Listar todos os processos\n");
     printf("\n\t0 - Voltar\n");
     printf("> ");
     scanf("%d", &op);
@@ -256,6 +271,23 @@ void processes(int uid, int isadmin){
                 if(!listProcessesReverseUser(endListN, uid)) printf("\tNão existem processos normais!\n");
                 header(-1);
                 if(!listProcessesReverseUser(endListR, uid)) printf("\tNão existem processos recusados!\n\n");
+                if((getsizePUid(iniListU, uid) + getsizePUid(endListN, uid) + getsizePUid(iniListR, uid)) != 0 ){
+                    printf("\nDeseja remover um processo não processado? (Sim|Não): ");
+                    scanf("%s", &auxs);
+                    if(strcmp(auxs, "Sim") == 0){
+                        printf("\nInsira o processo que deseja remover: ");
+                        scanf("%d", &op);
+                        if(removeListP(&iniListU, &endListU, op) == -1){
+                            if (removeListP(&iniListN, &endListN, op) == -1){
+                                if (removeListP(&iniListR, &endListR, op) == -1){
+
+                                    printf("\nProcesso não encontrado!\n");
+                                } else n_processes--;
+                            } else n_processes--;
+                        } else n_processes--;
+                    }
+                }
+                saveProcesses(iniListP, iniListU, iniListN, iniListR);
                 system("pause");
                 break;
             case 3:
@@ -301,20 +333,38 @@ void processes(int uid, int isadmin){
                     printf("\nDeseja executar um processo? (Sim|Não): ");
                     scanf("%s", &auxs);
                     if(strcmp(auxs, "Sim") == 0){
+                        time_t rawtime;
+                        time(&rawtime);
                         if(getsizeP(iniListU) > 0){
                             thisProcess = getLast(endListU);
                             removeListP(&iniListU, &endListU, thisProcess.pid);
                             thisProcess.type = 2;
+                            thisProcess.executed_at = *localtime(&rawtime);
                             insertEndList(&iniListP, &endListP, thisProcess);
                         } else if(getsizeP(iniListN) > 0){
                             thisProcess = getLast(endListN);
                             removeListP(&iniListN, &endListN, thisProcess.pid);
                             thisProcess.type = 2;
+                            thisProcess.executed_at = *localtime(&rawtime);
                             insertEndList(&iniListP, &endListP, thisProcess);
                         }
                         saveProcesses(iniListP, iniListU, iniListN, iniListR);
                     } else break;
                 } else printf("Não existem processos disponiveis para processar!\n");
+                system("pause");
+                break;
+            case 6:
+                printf("Insira o processo que deseja consultar:");
+                scanf("%d", &op);
+                if(infoProcess(iniListP, op) == NULL){
+                    if(infoProcess(iniListU, op) == NULL){
+                        if(infoProcess(iniListN, op) == NULL){
+                            if(infoProcess(iniListR, op) == NULL){
+                                printf("Processo não encontrado!\n");
+                            }
+                        }
+                    }
+                }
                 system("pause");
                 break;
             case 0:

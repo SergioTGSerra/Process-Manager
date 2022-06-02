@@ -108,6 +108,7 @@ int login(ELEM_USER **iniListU, int *uid){
         strcpy(newUser.user, "admin");
         strcpy(newUser.pass, "admin");
         insertEndListU(iniListU, newUser);
+        saveUsers(*iniListU);
     }
     do{
         if(flag){

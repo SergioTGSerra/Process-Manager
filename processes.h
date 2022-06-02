@@ -19,6 +19,15 @@ typedef struct process{
     struct tm executed_at;
 }PROCESS;
 
+typedef struct statistics{
+    int processeds;
+    int P_processeds;
+    int U_processeds;
+    int N_processeds;
+    int R_processeds;
+    int nAllRejecteds;
+}STATISTICS;
+
 /**
  * @desc Processes
  */
