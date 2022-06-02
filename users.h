@@ -20,7 +20,6 @@ typedef struct Elem_user{
 void users(ELEM_USER **iniListU);
 int login(ELEM_USER **iniListU, int *uid);
 int readUsers(ELEM_USER **iniListU);
-int saveUsers(ELEM_USER *iniListU);
 char* getUserName(int uid);
 
 #endif //TP_PROG1_USERS_H
