@@ -20,7 +20,6 @@ typedef struct process{
 }PROCESS;
 
 typedef struct statistics{
-    int processeds;
     int P_processeds;
     int U_processeds;
     int N_processeds;

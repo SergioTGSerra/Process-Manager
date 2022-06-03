@@ -65,30 +65,45 @@ int readProcesses(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, int type){
     return 0;
 }
 
-/* void ordenaNome(){
-    ELEM_PROCESS *iniList=NULL, *endList=NULL;
-    ELEM_PROCESS *novo, *novoN;
-    readProcesses(&iniList, &endList, 2); readProcesses(&iniList, &endList, 1); readProcesses(&iniList, &endList, 0); readProcesses(&iniList, &endList, -1);
-    PROCESS temp;
+void listProcesses(ELEM_PROCESS *iniList){
+    ELEM_PROCESS *aux;
+    for(aux = iniList; aux != NULL; aux=aux->next) printf("\t%d - %s \n",aux->info.pid, aux->info.name);
+}
 
-    for (novo = iniList; novo != NULL; novo = novo->next) {
-        for (novoN = iniList; novoN->next != NULL; novoN = novoN->next) {
-            if (strcmp(getUserName(novoN->info.owner), getUserName(novoN->next->info.owner)) > 0) {
-                temp = novoN->info;
-                novoN->info = novoN->next->info;
-                novoN->next->info = temp;
+int writeOrdenaNome(){
+    ELEM_PROCESS *iniList=NULL, *endList=NULL;
+    ELEM_PROCESS *aux;
+    PROCESS temp;
+    char auxs1[50], auxs2[50];
+
+    readProcesses(&iniList, &endList, 2);
+    readProcesses(&iniList, &endList, 1);
+    readProcesses(&iniList, &endList, 0);
+    readProcesses(&iniList, &endList, -1);
+
+    for (int i = 0; i < getsizeP(iniList); i++) {
+        for (aux = iniList; aux->next != NULL; aux = aux->next) {
+            strcpy(auxs1, getUserName(aux->info.owner));
+            strcpy(auxs2, getUserName(aux->next->info.owner));
+            if (stricmp(auxs1, auxs2) > 0) {
+                temp = aux->info;
+                aux->info = aux->next->info;
+                aux->next->info = temp;
             }
         }
     }
 
-    for (novo = novoN; novo != NULL; novo = novo->next) printf("%s", getUserName(novo->info.owner));
-
-    system("pause");
-} */
-
-void listProcesses(ELEM_PROCESS *iniList){
-    ELEM_PROCESS *aux;
-    for(aux = iniList; aux != NULL; aux=aux->next) printf("\t%d - %s \n",aux->info.pid, aux->info.name);
+   for (aux = iniList; aux != NULL; aux = aux->next){
+       FILE *fp = NULL;
+       fp=fopen("dadosOredenadosNome.txt", "w");
+       if(fp==NULL) return -1;
+       fprintf(fp,"Pid: %d, Nome: %s, Descrição: %s, Dono: %s, Data de criação: %d/%d/%d - %d:%d, Data de execução: %d/%d/%d - %d:%d\n",
+              aux->info.pid, aux->info.name, aux->info.desc, getUserName(aux->info.owner),
+              aux->info.created_at.tm_mday, aux->info.created_at.tm_mon, aux->info.created_at.tm_year + 1900 , aux->info.created_at.tm_hour, aux->info.created_at.tm_min,
+              aux->info.executed_at.tm_mday, aux->info.executed_at.tm_mon, aux->info.executed_at.tm_year + 1900 , aux->info.executed_at.tm_hour, aux->info.executed_at.tm_min);
+       fclose(fp);
+   }
+    return 0;
 }
 
 void listReverseProcesses(ELEM_PROCESS *endList){
@@ -195,6 +210,19 @@ int saveProcesses(ELEM_PROCESS *iniListP, ELEM_PROCESS *iniListU, ELEM_PROCESS *
     return 0;
 }
 
+void writeTxt(PROCESS data){
+    FILE *fp = NULL;
+    fp = fopen("processados.txt", "a");
+    if (fp == NULL){
+        printf("Erro ao abrir o ficheiro");
+    }
+    fprintf(fp,"Pid: %d, Nome: %s, Descrição: %s, Dono: %s, Data de criação: %d/%d/%d - %d:%d, Data de execução: %d/%d/%d - %d:%d\n",
+            data.pid, data.name, data.desc, getUserName(data.owner),
+            data.created_at.tm_mday, data.created_at.tm_mon, data.created_at.tm_year + 1900 , data.created_at.tm_hour, data.created_at.tm_min,
+            data.executed_at.tm_mday, data.executed_at.tm_mon, data.executed_at.tm_year + 1900 , data.executed_at.tm_hour, data.executed_at.tm_min);
+    fclose(fp);
+}
+
 /**
  * @desc Main function processes
  */
@@ -211,10 +239,13 @@ int printMenuP(int isadmin){
     if(isadmin == 1) printf("\n\t4 - Listar todos os processos\n"); //Feito
     if(isadmin == 1) printf("\n\t5 - Executar processos\n"); //Feito
     if(isadmin == 1) printf("\n\t6 - Procurar processo por id\n");
-    printf("**********************************\n");
-    printf("*******     Estatisticas    ******\n");
-    printf("**********************************\n");
-    if(isadmin == 1) printf("\n\t7 - Listar todos os processos\n");
+    if(isadmin == 1) printf("**********************************\n"
+                            "*******     Estatisticas    ******\n"
+                            "**********************************\n");
+    if(isadmin == 1) printf("\n\t7 - Estatisticas dos processos\n");
+    if(isadmin == 1) printf("\n\t8 - Escrever relatório dos processos, ordenados por nome de utilizador \n");
+    if(isadmin == 1) printf("\n\t9 - Estatisticas de um utilizador\n");
+
     printf("\n\t0 - Voltar\n");
     printf("> ");
     scanf("%d", &op);
@@ -241,6 +272,7 @@ void processes(int uid, int isadmin){
     char auxs[20];
     n_processes = getsizeP(iniListP) + getsizeP(iniListU) + getsizeP(iniListN) + getsizeP(iniListR);
     PROCESS thisProcess;
+    STATISTICS thisStatistics;
 
     do {
         op = printMenuP(isadmin);
@@ -251,14 +283,22 @@ void processes(int uid, int isadmin){
                     printf("\nLista de processos normais cheia (max: %d)! A inserir processo em recusados... \n", MAX_PROCESSES);
                     thisProcess.type = -1;
                     insertIniList(&iniListR, &endListR, thisProcess);
+                    thisStatistics.R_processeds = thisStatistics.R_processeds++;
                 }
                 if(thisProcess.type == 1 && getsizeP(iniListU) >= MAX_PROCESSES){
                     printf("\nLista de processos urgentes cheia (max: %d)! A inserir processo em recusados... \n", MAX_PROCESSES);
                     thisProcess.type = -1;
                     insertIniList(&iniListR, &endListR, thisProcess);
+                    thisStatistics.R_processeds = thisStatistics.R_processeds++;
                 }
-                if(thisProcess.type == 0 && getsizeP(iniListN) < MAX_PROCESSES) insertIniList(&iniListN, &endListN, thisProcess);
-                if(thisProcess.type == 1 && getsizeP(iniListU) < MAX_PROCESSES) insertIniList(&iniListU, &endListU, thisProcess);
+                if(thisProcess.type == 0 && getsizeP(iniListN) < MAX_PROCESSES){
+                    insertIniList(&iniListN, &endListN, thisProcess);
+                    thisStatistics.U_processeds = thisStatistics.U_processeds++;
+                }
+                if(thisProcess.type == 1 && getsizeP(iniListU) < MAX_PROCESSES){
+                    insertIniList(&iniListU, &endListU, thisProcess);
+                    thisStatistics.N_processeds = thisStatistics.N_processeds++;
+                }
                 saveProcesses(iniListP, iniListU, iniListN, iniListR);
                 system("pause");
                 break;
@@ -280,7 +320,6 @@ void processes(int uid, int isadmin){
                         if(removeListP(&iniListU, &endListU, op) == -1){
                             if (removeListP(&iniListN, &endListN, op) == -1){
                                 if (removeListP(&iniListR, &endListR, op) == -1){
-
                                     printf("\nProcesso não encontrado!\n");
                                 } else n_processes--;
                             } else n_processes--;
@@ -341,12 +380,14 @@ void processes(int uid, int isadmin){
                             thisProcess.type = 2;
                             thisProcess.executed_at = *localtime(&rawtime);
                             insertEndList(&iniListP, &endListP, thisProcess);
+                            writeTxt(thisProcess);
                         } else if(getsizeP(iniListN) > 0){
                             thisProcess = getLast(endListN);
                             removeListP(&iniListN, &endListN, thisProcess.pid);
                             thisProcess.type = 2;
                             thisProcess.executed_at = *localtime(&rawtime);
                             insertEndList(&iniListP, &endListP, thisProcess);
+                            writeTxt(thisProcess);
                         }
                         saveProcesses(iniListP, iniListU, iniListN, iniListR);
                     } else break;
@@ -365,6 +406,34 @@ void processes(int uid, int isadmin){
                         }
                     }
                 }
+                system("pause");
+                break;
+            case 7:
+                printf("------- Numero de processos processados de cada uma das listas --------\n");
+                printf("Numero de processos processados urgentes: %d\n", thisStatistics.U_processeds);
+                printf("Numero de processos processados normais: %d\n\n", thisStatistics.N_processeds);
+                printf("------- Numero de processos em cada uma das listas --------\n");
+                printf("Numero de processos processados: %d\n", getsizeP(iniListP));
+                printf("Numero de processos urgentes: %d\n", getsizeP(iniListU));
+                printf("Numero de processos normais: %d\n", getsizeP(iniListN));
+                printf("Numero de processos recusados: %d\n", getsizeP(iniListR));
+                system("pause");
+                break;
+            case 8:
+                writeOrdenaNome();
+                system("pause");
+                break;
+            case 9:
+                printf("\nInsira o id do utilizador para procurar: ");
+                scanf("%d", &op);
+                system("cls");
+                if(getsizeP(iniListP) + getsizeP(iniListU) + getsizeP(iniListN) + getsizeP(iniListR) != 0){
+                    printf("------- Numero de processos em cada uma das listas --------\n");
+                    printf("Numero de processos processados: %d\n", getsizeP(iniListP));
+                    printf("Numero de processos urgentes: %d\n", getsizeP(iniListU));
+                    printf("Numero de processos normais: %d\n", getsizeP(iniListN));
+                    printf("Numero de processos recusados: %d\n", getsizeP(iniListR));
+                } else printf("Utilizador sem processos ou utilizador não encontrado!");
                 system("pause");
                 break;
             case 0:
