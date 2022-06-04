@@ -65,6 +65,23 @@ int readProcesses(ELEM_PROCESS **iniList, ELEM_PROCESS **endList, int type){
     return 0;
 }
 
+int readStatistics(STATISTICS *statistics){
+    FILE *fp = fopen("statistics.dat", "rb");
+    if(!fp) return -1;
+    fread(statistics, sizeof(STATISTICS), 1,fp);
+    fclose(fp);
+    return 0;
+}
+
+int saveStatistics(STATISTICS *statistics){
+    FILE *fp = NULL;
+    fp=fopen("statistics.dat", "wb");
+    if(fp==NULL) return -1;
+    fwrite(statistics, sizeof(STATISTICS), 1, fp);
+    fclose(fp);
+    return 0;
+}
+
 void listProcesses(ELEM_PROCESS *iniList){
     ELEM_PROCESS *aux;
     for(aux = iniList; aux != NULL; aux=aux->next) printf("\t%d - %s \n",aux->info.pid, aux->info.name);
@@ -223,6 +240,48 @@ void writeTxt(PROCESS data){
     fclose(fp);
 }
 
+void averageTime(ELEM_PROCESS *iniList){
+    ELEM_PROCESS *aux;
+    int dia = 0, mes = 0, ano = 0, hora = 0, minuto = 0;
+    for(aux = iniList; aux != NULL; aux=aux->next){
+        dia = dia + aux->info.created_at.tm_mday;
+        mes = mes + aux->info.created_at.tm_mon;
+        ano = ano + aux->info.created_at.tm_year;
+        hora = hora + aux->info.created_at.tm_hour;
+        minuto = minuto + aux->info.created_at.tm_min;
+    }
+    printf("%d dias, %d meses, %d anos, %d horas, %d minutos ",
+           dia/ getsizeP(iniList), mes/ getsizeP(iniList), ano/ getsizeP(iniList),
+           hora/ getsizeP(iniList), minuto/ getsizeP(iniList));
+}
+
+int OrdenaTimeRank(ELEM_PROCESS *iniList, ELEM_PROCESS *endList){
+    ELEM_PROCESS *aux;
+    ELEM_PROCESS *endAux;
+    PROCESS temp;
+    for (int i = 0; i < getsizeP(iniList); i++) {
+        for (aux = iniList; aux->next != NULL; aux = aux->next) {
+            if (mktime(&(aux->info.executed_at)) > mktime(&(aux->next->info.executed_at))) {
+                temp = aux->info;
+                aux->info = aux->next->info;
+                aux->next->info = temp;
+            }
+        }
+    }
+    for (int i = 0; i < getsizeP(iniList); i++) {
+        for (endAux = endList; endAux->previous != NULL; endAux = endAux->previous) {
+            if (mktime(&(endAux->info.executed_at)) < mktime(&(endAux->previous->info.executed_at))) {
+                temp = endAux->info;
+                endAux->info = endAux->previous->info;
+                endAux->previous->info = temp;
+            }
+        }
+    }
+    printf("\nProcesso que mais tempo demorou a ser executado: %s ", aux->info.name);
+    printf("\nProcesso que menos tempo demorou a ser executado: %s ", endAux->info.name);
+    return 0;
+}
+
 /**
  * @desc Main function processes
  */
@@ -273,6 +332,7 @@ void processes(int uid, int isadmin){
     n_processes = getsizeP(iniListP) + getsizeP(iniListU) + getsizeP(iniListN) + getsizeP(iniListR);
     PROCESS thisProcess;
     STATISTICS thisStatistics;
+    readStatistics(&thisStatistics);
 
     do {
         op = printMenuP(isadmin);
@@ -283,22 +343,23 @@ void processes(int uid, int isadmin){
                     printf("\nLista de processos normais cheia (max: %d)! A inserir processo em recusados... \n", MAX_PROCESSES);
                     thisProcess.type = -1;
                     insertIniList(&iniListR, &endListR, thisProcess);
-                    thisStatistics.R_processeds = thisStatistics.R_processeds++;
+                    thisStatistics.R_processeds++;
                 }
                 if(thisProcess.type == 1 && getsizeP(iniListU) >= MAX_PROCESSES){
                     printf("\nLista de processos urgentes cheia (max: %d)! A inserir processo em recusados... \n", MAX_PROCESSES);
                     thisProcess.type = -1;
                     insertIniList(&iniListR, &endListR, thisProcess);
-                    thisStatistics.R_processeds = thisStatistics.R_processeds++;
+                    thisStatistics.R_processeds++;
                 }
                 if(thisProcess.type == 0 && getsizeP(iniListN) < MAX_PROCESSES){
                     insertIniList(&iniListN, &endListN, thisProcess);
-                    thisStatistics.U_processeds = thisStatistics.U_processeds++;
+                    thisStatistics.U_processeds++;
                 }
                 if(thisProcess.type == 1 && getsizeP(iniListU) < MAX_PROCESSES){
                     insertIniList(&iniListU, &endListU, thisProcess);
-                    thisStatistics.N_processeds = thisStatistics.N_processeds++;
+                    thisStatistics.N_processeds++;
                 }
+                saveStatistics(&thisStatistics);
                 saveProcesses(iniListP, iniListU, iniListN, iniListR);
                 system("pause");
                 break;
@@ -321,11 +382,12 @@ void processes(int uid, int isadmin){
                             if (removeListP(&iniListN, &endListN, op) == -1){
                                 if (removeListP(&iniListR, &endListR, op) == -1){
                                     printf("\nProcesso não encontrado!\n");
-                                } else n_processes--;
-                            } else n_processes--;
-                        } else n_processes--;
+                                }
+                            }
+                        }
                     }
                 }
+                saveStatistics(&thisStatistics);
                 saveProcesses(iniListP, iniListU, iniListN, iniListR);
                 system("pause");
                 break;
@@ -348,6 +410,7 @@ void processes(int uid, int isadmin){
                         }
                         else printf("Erro ao defenir tipo do processo ou lista de espera dos processos cheia!\n");
                     }
+                    saveStatistics(&thisStatistics);
                     saveProcesses(iniListP, iniListU, iniListN, iniListR);
                 } else printf("\tVocê não tem processos recusados!\n");
                 system("pause");
@@ -389,6 +452,7 @@ void processes(int uid, int isadmin){
                             insertEndList(&iniListP, &endListP, thisProcess);
                             writeTxt(thisProcess);
                         }
+                        saveStatistics(&thisStatistics);
                         saveProcesses(iniListP, iniListU, iniListN, iniListR);
                     } else break;
                 } else printf("Não existem processos disponiveis para processar!\n");
@@ -417,6 +481,24 @@ void processes(int uid, int isadmin){
                 printf("Numero de processos urgentes: %d\n", getsizeP(iniListU));
                 printf("Numero de processos normais: %d\n", getsizeP(iniListN));
                 printf("Numero de processos recusados: %d\n", getsizeP(iniListR));
+                printf("\n------- Tempo médio de espera --------\n");
+                printf("Tempo médio de espera de processos urgentes: ");
+                if(getsizeP(iniListU) != 0){
+                    averageTime(iniListU);
+                    printf("\n");
+                }
+                else printf("Tempo médio indisponivel!\n");
+                printf("Tempo médio de espera de processos normais: ");
+                if(getsizeP(iniListN) != 0){
+                    averageTime(iniListN);
+                    printf("\n");
+                }
+                else printf("Tempo médio indisponivel!\n");
+                if(getsizeP(iniListP) != 0){
+                    printf("\n------- Top Processos --------\n");
+                    OrdenaTimeRank(iniListP, endListU);
+                } else printf("Top Processos Indisponiveis uma vez que não existe processos processados!");
+                printf("\n");
                 system("pause");
                 break;
             case 8:
