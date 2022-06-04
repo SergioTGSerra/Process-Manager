@@ -253,7 +253,7 @@ void averageTime(ELEM_PROCESS *iniList){
            hora/ getsizeP(iniList), minuto/ getsizeP(iniList));
 }
 
-int OrdenaTimeRank(ELEM_PROCESS *iniList, ELEM_PROCESS *endList){
+int FirstLastTime(ELEM_PROCESS *iniList, ELEM_PROCESS *endList){
     ELEM_PROCESS *aux;
     ELEM_PROCESS *endAux;
     PROCESS temp;
@@ -280,6 +280,30 @@ int OrdenaTimeRank(ELEM_PROCESS *iniList, ELEM_PROCESS *endList){
     return 0;
 }
 
+void printaRank(){
+    ELEM_PROCESS *iniList=NULL, *endList=NULL;
+    ELEM_PROCESS *aux;
+    PROCESS temp;
+    readProcesses(&iniList, &endList, 1);
+    readProcesses(&iniList, &endList, 0);
+
+    for (int i = 0; i < getsizeP(iniList); i++) {
+        for (aux = iniList; aux->next != NULL; aux = aux->next) {
+            if (aux->info.pid > aux->next->info.pid) {
+                temp = aux->info;
+                aux->info = aux->next->info;
+                aux->next->info = temp;
+            }
+        }
+    }
+
+    for (aux = iniList; aux != NULL; aux = aux->next){
+        printf("Pid: %d, Nome: %s, Descrição: %s, Dono: %s, Data de criação: %d/%d/%d - %d:%d\n",
+                aux->info.pid, aux->info.name, aux->info.desc, getUserName(aux->info.owner),
+                aux->info.created_at.tm_mday, aux->info.created_at.tm_mon, aux->info.created_at.tm_year + 1900 , aux->info.created_at.tm_hour, aux->info.created_at.tm_min);
+    }
+}
+
 /**
  * @desc Main function processes
  */
@@ -302,6 +326,7 @@ int printMenuP(int isadmin){
     if(isadmin == 1) printf("\n\t7 - Estatisticas dos processos\n");
     if(isadmin == 1) printf("\n\t8 - Escrever relatório dos processos, ordenados por nome de utilizador \n");
     if(isadmin == 1) printf("\n\t9 - Estatisticas de um utilizador\n");
+    if(isadmin == 1) printf("\n\t10 - Rank por tempo de espera\n");
 
     printf("\n\t0 - Voltar\n");
     printf("> ");
@@ -494,7 +519,7 @@ void processes(int uid, int isadmin){
                 else printf("Tempo médio indisponivel!\n");
                 if(getsizeP(iniListP) != 0){
                     printf("\n------- Top Processos --------\n");
-                    OrdenaTimeRank(iniListP, endListP);
+                    FirstLastTime(iniListP, endListP);
                 } else printf("Top Processos Indisponiveis uma vez que não existe processos processados!");
                 printf("\n");
                 system("pause");
@@ -514,6 +539,10 @@ void processes(int uid, int isadmin){
                     printf("Numero de processos normais: %d\n", getsizeP(iniListN));
                     printf("Numero de processos recusados: %d\n", getsizeP(iniListR));
                 } else printf("Utilizador sem processos ou utilizador não encontrado!");
+                system("pause");
+                break;
+            case 10:
+                if((getsizeP(iniListU) + getsizeP(iniListN)) != 0) printaRank();
                 system("pause");
                 break;
             case 0:
