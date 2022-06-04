@@ -162,8 +162,6 @@ PROCESS *infoProcess(ELEM_PROCESS *iniList, int pid){
         if(aux->info.type == -1) printf("Recusado");
         if(aux->info.type == 2) printf("Processado");
         printf("\nCriado em: %d/%d/%d as %d horas e %d minutos", aux->info.created_at.tm_mday, aux->info.created_at.tm_mon, aux->info.created_at.tm_year + 1900 , aux->info.created_at.tm_hour, aux->info.created_at.tm_min);
-        if(aux->info.executed_at.tm_mday != 0) printf("\nExecutado em: %d/%d/%d as %d horas e %d minutos", aux->info.executed_at.tm_mday, aux->info.executed_at.tm_mon, aux->info.executed_at.tm_year + 1900 , aux->info.executed_at.tm_hour, aux->info.executed_at.tm_min);
-        else printf("\nProcesso ainda não foi executado\n");
         return &(aux->info);
     }
     return NULL;
@@ -353,11 +351,11 @@ void processes(int uid, int isadmin){
                 }
                 if(thisProcess.type == 0 && getsizeP(iniListN) < MAX_PROCESSES){
                     insertIniList(&iniListN, &endListN, thisProcess);
-                    thisStatistics.U_processeds++;
+                    thisStatistics.N_processeds++;
                 }
                 if(thisProcess.type == 1 && getsizeP(iniListU) < MAX_PROCESSES){
                     insertIniList(&iniListU, &endListU, thisProcess);
-                    thisStatistics.N_processeds++;
+                    thisStatistics.U_processeds++;
                 }
                 saveStatistics(&thisStatistics);
                 saveProcesses(iniListP, iniListU, iniListN, iniListR);
@@ -496,7 +494,7 @@ void processes(int uid, int isadmin){
                 else printf("Tempo médio indisponivel!\n");
                 if(getsizeP(iniListP) != 0){
                     printf("\n------- Top Processos --------\n");
-                    OrdenaTimeRank(iniListP, endListU);
+                    OrdenaTimeRank(iniListP, endListP);
                 } else printf("Top Processos Indisponiveis uma vez que não existe processos processados!");
                 printf("\n");
                 system("pause");
