@@ -1,1 +1,1 @@
-Process manager, written in C for programming discipline 1
+Process manager, written in C for programming 1 discipline.
